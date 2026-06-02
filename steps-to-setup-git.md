@@ -1,0 +1,8 @@
+- git clone https://github.com/mdnumanraza/ForgeMinds.git
+- cd ForgeMinds
+- do changes
+- git add .
+- git commit -m "your commit message"
+- git --config user.name "your-github-username"
+- git --config user.email "your-personal-email"
+- git push origin main
