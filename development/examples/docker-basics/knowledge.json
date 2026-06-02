@@ -1,0 +1,720 @@
+{
+  "$schema": "forgeMinds/knowledge/v1",
+  "version": "1.0.0",
+  "worldId": "world-docker-basics",
+  "topic": "Docker Fundamentals",
+  "difficultyLevel": "beginner",
+  "estimatedHours": 3,
+  "prerequisiteTopics": [],
+  "tags": ["docker", "containers", "images", "devops", "containerization"],
+  "stages": [
+    {
+      "stageId": "stage-images",
+      "storyIntro": "You step onto the floor of the Image Foundry — heat radiates from the furnaces where raw Dockerfiles are processed into immutable artifacts. Ironhands strides over: 'Every container starts as an Image. Get that wrong and nothing downstream can be right. Your first enemy — The Bloated Image — is a monument to undisciplined builds. Let's teach you to build lean.'",
+      "xpReward": 150,
+      "bossObjective": "Defeat The Bloated Image by demonstrating clean Dockerfile practices, including multi-stage builds and minimal base images.",
+      "concept": {
+        "title": "Docker Images",
+        "summary": "A Docker Image is a read-only, layered template used to create containers. Each instruction in a Dockerfile creates a new layer. Images are immutable — once built, they don't change. Understanding how layers work is the key to building small, fast, and secure images.",
+        "chunks": [
+          {
+            "id": "chunk-dockerfile-basics",
+            "title": "Writing a Dockerfile",
+            "content": "A Dockerfile is a text file with a sequence of instructions. Docker reads it top to bottom to build an image. Each instruction creates a cached, reusable layer.",
+            "type": "code",
+            "code": "# Start with a base image\nFROM node:18-alpine\n\n# Set the working directory inside the container\nWORKDIR /app\n\n# Copy dependency files first (for better layer caching)\nCOPY package*.json ./\n\n# Install dependencies\nRUN npm ci --only=production\n\n# Copy the rest of the source code\nCOPY . .\n\n# Expose the port the app listens on (documentation only)\nEXPOSE 3000\n\n# Define the command to run when a container starts\nCMD [\"node\", \"server.js\"]",
+            "language": "dockerfile",
+            "keyPoints": [
+              "`FROM` — every Dockerfile starts here; prefer minimal base images (alpine variants are smaller)",
+              "`COPY package*.json ./` before `COPY . .` — leverages Docker layer cache; dependencies only reinstall when package files change",
+              "`RUN` — executes commands at build time; each `RUN` adds a layer",
+              "`CMD` vs `ENTRYPOINT` — `CMD` provides default arguments, can be overridden; `ENTRYPOINT` sets the fixed executable",
+              "`EXPOSE` is documentation only — it does not actually open any ports on the host"
+            ]
+          },
+          {
+            "id": "chunk-image-commands",
+            "title": "Building and Managing Images",
+            "content": "The core Docker CLI commands for working with images:",
+            "type": "code",
+            "code": "# Build an image from a Dockerfile in the current directory\ndocker build -t my-app:1.0 .\n\n# Build with a specific Dockerfile\ndocker build -f Dockerfile.prod -t my-app:prod .\n\n# List all local images\ndocker images\n\n# Pull an image from Docker Hub\ndocker pull nginx:alpine\n\n# Push an image to Docker Hub (must be logged in)\ndocker push myusername/my-app:1.0\n\n# Tag an existing image\ndocker tag my-app:1.0 myusername/my-app:1.0\n\n# Remove a local image\ndocker rmi my-app:1.0\n\n# Remove all dangling (untagged) images\ndocker image prune\n\n# Show the layers and sizes of an image\ndocker history my-app:1.0",
+            "language": "bash",
+            "keyPoints": [
+              "`-t name:tag` — always tag your builds; `latest` is a tag, not a guarantee of recency",
+              "`docker history` — inspect image layers; invaluable for finding where size comes from",
+              "`docker image prune` — clean up dangling images that accumulate after rebuilds",
+              "Image naming convention: `[registry/][username/]name:tag`"
+            ]
+          },
+          {
+            "id": "chunk-multistage-build",
+            "title": "Multi-Stage Builds for Lean Images",
+            "content": "Multi-stage builds use multiple `FROM` statements in a single Dockerfile. You build your application in a 'builder' stage with all the tools needed, then copy only the compiled output into a minimal final image — leaving all build tools behind.",
+            "type": "code",
+            "code": "# Stage 1: Builder — has Node, npm, and all dev dependencies\nFROM node:18 AS builder\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci\nCOPY . .\nRUN npm run build  # Produces /app/dist\n\n# Stage 2: Production — minimal image with only the compiled output\nFROM node:18-alpine AS production\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci --only=production\n# Copy only the compiled output from the builder stage\nCOPY --from=builder /app/dist ./dist\nEXPOSE 3000\nCMD [\"node\", \"dist/server.js\"]\n# Result: ~120MB instead of ~1GB",
+            "language": "dockerfile",
+            "keyPoints": [
+              "`FROM ... AS <name>` — names a build stage so you can reference it later",
+              "`COPY --from=<stage>` — copies files from a previous stage; the builder stage is not included in the final image",
+              "The final image only contains what's in the last stage",
+              "Multi-stage builds are the standard approach for compiled languages and Node.js apps"
+            ]
+          }
+        ]
+      },
+      "quest": {
+        "id": "quest-images-build",
+        "title": "Forge the First Image",
+        "objective": "Write a Dockerfile for a simple Node.js application that uses an `alpine` base image and produces an image under 200MB. Build it with the tag `forge-app:v1`.",
+        "description": "The Foundry awaits its first proper artifact. Write a clean Dockerfile, build it, and check the final image size to ensure it is not bloated.",
+        "type": "build-and-verify",
+        "acceptanceCriteria": [
+          "Dockerfile uses an `alpine` variant base image",
+          "Build completes successfully",
+          "Image is tagged `forge-app:v1`",
+          "`docker images forge-app:v1` shows size under 200MB",
+          "Container starts and serves a response"
+        ],
+        "hints": [
+          "Use `node:18-alpine` as your base image",
+          "Use `docker history forge-app:v1` to see which layers are contributing the most size"
+        ],
+        "xpReward": 75
+      },
+      "challenge": {
+        "id": "challenge-images-mcq",
+        "type": "multiple-choice",
+        "title": "Images Knowledge Check",
+        "variants": [
+          {
+            "difficulty": "easy",
+            "question": "What does the `docker build -t my-app:v1 .` command do?",
+            "options": [
+              { "id": "a", "text": "Runs a container named `my-app:v1` from the current directory" },
+              { "id": "b", "text": "Builds a Docker image tagged `my-app:v1` using the Dockerfile in the current directory", "correct": true },
+              { "id": "c", "text": "Tags an existing image with the name `my-app:v1`" },
+              { "id": "d", "text": "Pushes the image `my-app:v1` to Docker Hub" }
+            ],
+            "explanation": "`docker build` reads a Dockerfile and builds an image. `-t my-app:v1` sets the name and tag. `.` is the build context — the directory Docker uses to resolve COPY commands.",
+            "xpReward": 30
+          },
+          {
+            "difficulty": "medium",
+            "question": "You have a Node.js Dockerfile. To maximize layer cache efficiency, in what order should you place these instructions?",
+            "options": [
+              { "id": "a", "text": "COPY . . → RUN npm ci → COPY package*.json ./" },
+              { "id": "b", "text": "COPY package*.json ./ → RUN npm ci → COPY . .", "correct": true },
+              { "id": "c", "text": "RUN npm ci → COPY package*.json ./ → COPY . ." },
+              { "id": "d", "text": "The order doesn't affect caching" }
+            ],
+            "explanation": "Docker caches each layer. If `package.json` hasn't changed, Docker reuses the cached `npm ci` layer. If you copy all source files first, every code change invalidates the `npm ci` layer and forces a full dependency reinstall.",
+            "xpReward": 50
+          },
+          {
+            "difficulty": "hard",
+            "question": "You run `docker build` twice on the same Dockerfile with no changes. Why might the second build still produce a different image ID than the first?",
+            "options": [
+              { "id": "a", "text": "Docker always rebuilds from scratch; there is no layer cache" },
+              { "id": "b", "text": "A `RUN apt-get update` instruction fetches different package index data on each build", "correct": true },
+              { "id": "c", "text": "Docker adds a random salt to each build for security" },
+              { "id": "d", "text": "The `EXPOSE` instruction changes based on the host's available ports" }
+            ],
+            "explanation": "Instructions that fetch external data (like `apt-get update`, `curl`, or `npm install` without a lock file) can produce different results on different builds, invalidating the cache and producing a new image layer hash. Using lock files (`package-lock.json`, `Pipfile.lock`) and `--no-cache` strategically helps make builds reproducible.",
+            "xpReward": 80
+          }
+        ]
+      }
+    },
+    {
+      "stageId": "stage-containers",
+      "storyIntro": "The Foundry's first image gleams, ready to be brought to life. D.A.E.M.O.N. materializes: 'An Image is potential. A Container is action. The Zombie Container haunts this Hall because someone started containers without understanding the lifecycle. It's time you understood exactly what happens when a container starts, runs, and should stop.'",
+      "xpReward": 200,
+      "bossObjective": "Defeat The Zombie Container by demonstrating mastery of the container lifecycle — running, inspecting, exec'ing into, stopping, and removing containers properly.",
+      "concept": {
+        "title": "Containers",
+        "summary": "A container is a running instance of an image. Every `docker run` creates a new container from the image. Containers have a full lifecycle: created, running, paused, stopped, and removed. Understanding this lifecycle is essential for avoiding the Zombie Container — a stopped container that was never cleaned up.",
+        "chunks": [
+          {
+            "id": "chunk-docker-run",
+            "title": "Running Containers",
+            "content": "The `docker run` command creates and starts a container from an image. It has many flags, but a few are essential to know immediately.",
+            "type": "code",
+            "code": "# Run a container (pulls image if not local, starts it)\ndocker run nginx\n\n# Run in detached (background) mode\ndocker run -d nginx\n\n# Run with a name (easier to reference than the random ID)\ndocker run -d --name my-nginx nginx\n\n# Run with port mapping: host-port:container-port\ndocker run -d -p 8080:80 --name my-nginx nginx\n\n# Run with environment variables\ndocker run -d -e NODE_ENV=production -e PORT=3000 my-app:v1\n\n# Run interactively (allocate a terminal and keep stdin open)\ndocker run -it ubuntu:22.04 /bin/bash\n\n# Run and automatically remove the container when it exits\ndocker run --rm nginx echo \"hello and goodbye\"\n\n# Run with resource limits\ndocker run -d --memory=256m --cpus=0.5 my-app:v1",
+            "language": "bash",
+            "keyPoints": [
+              "`-d` (detached) — runs in the background; get logs with `docker logs <name>`",
+              "`-p host:container` — maps a host port to a container port; without this, the container's ports are inaccessible from the host",
+              "`-e KEY=VALUE` — sets environment variables inside the container",
+              "`--rm` — automatically removes the container after it exits; use for one-off tasks",
+              "`-it` — interactive + TTY; required for shells and interactive CLIs"
+            ]
+          },
+          {
+            "id": "chunk-container-lifecycle",
+            "title": "Container Lifecycle and Management",
+            "content": "Containers have a clear lifecycle. Knowing how to inspect, stop, start, and remove them is essential for keeping a clean environment.",
+            "type": "code",
+            "code": "# List running containers\ndocker ps\n\n# List ALL containers (including stopped)\ndocker ps -a\n\n# Get logs from a container\ndocker logs my-nginx\n\n# Follow (stream) logs in real time\ndocker logs -f my-nginx\n\n# Stop a running container gracefully (SIGTERM, then SIGKILL after timeout)\ndocker stop my-nginx\n\n# Start a stopped container\ndocker start my-nginx\n\n# Force-remove a running container (SIGKILL immediately)\ndocker rm -f my-nginx\n\n# Remove a stopped container\ndocker rm my-nginx\n\n# Remove all stopped containers\ndocker container prune\n\n# Inspect full container metadata (JSON)\ndocker inspect my-nginx\n\n# Get live CPU/memory stats\ndocker stats my-nginx",
+            "language": "bash",
+            "keyPoints": [
+              "`docker ps -a` — always check this when something seems 'missing'; it's probably just stopped",
+              "`docker stop` sends SIGTERM, waits 10s, then SIGKILL — graceful shutdown",
+              "`docker rm -f` sends SIGKILL immediately — for containers that won't respond to stop",
+              "`docker container prune` — bulk-removes all stopped containers",
+              "`docker stats` — real-time resource monitoring; press Ctrl+C to exit"
+            ]
+          },
+          {
+            "id": "chunk-exec-and-debug",
+            "title": "Exec and Debugging",
+            "content": "`docker exec` runs a command inside an already-running container. Combined with `-it`, it gives you an interactive shell — your primary debugging tool.",
+            "type": "code",
+            "code": "# Open an interactive shell inside a running container\ndocker exec -it my-nginx /bin/bash\n# Or for containers with only sh (alpine-based)\ndocker exec -it my-nginx /bin/sh\n\n# Run a one-off command without an interactive shell\ndocker exec my-nginx cat /etc/nginx/nginx.conf\n\n# Check environment variables inside the container\ndocker exec my-nginx env\n\n# Check which processes are running\ndocker exec my-nginx ps aux\n\n# Copy a file from a container to your local machine\ndocker cp my-nginx:/etc/nginx/nginx.conf ./nginx.conf\n\n# Copy a file into a running container\ndocker cp ./my-config.conf my-nginx:/etc/nginx/conf.d/",
+            "language": "bash",
+            "keyPoints": [
+              "`docker exec -it` — the most important debugging command in Docker",
+              "Alpine-based images use `/bin/sh`, not `/bin/bash`",
+              "`docker cp` — copies files between host and container; works on both running and stopped containers",
+              "If a container exits immediately, use `docker logs <container>` — the crash output is there"
+            ]
+          }
+        ]
+      },
+      "quest": {
+        "id": "quest-containers-lifecycle",
+        "title": "Tame the Container Hall",
+        "objective": "Run a container named `hall-guardian` from the `nginx:alpine` image with port 8080 mapped to port 80. Then exec into it to verify the nginx process is running, stop it cleanly, and remove it.",
+        "description": "The Hall is littered with Zombie Containers. Prove you can run a container, inspect it from inside, and clean it up properly when done.",
+        "type": "run-and-verify",
+        "acceptanceCriteria": [
+          "Container `hall-guardian` is running with port 8080:80 mapping",
+          "HTTP request to `localhost:8080` returns a response",
+          "`docker exec -it hall-guardian ps` shows the nginx process",
+          "Container is stopped with `docker stop`",
+          "Container is removed with `docker rm`",
+          "`docker ps -a` shows no `hall-guardian` container"
+        ],
+        "hints": [
+          "Use `curl localhost:8080` to test the port mapping",
+          "Use `docker exec -it hall-guardian /bin/sh` since it's alpine-based (no bash)"
+        ],
+        "xpReward": 100
+      },
+      "challenge": {
+        "id": "challenge-containers-mcq",
+        "type": "multiple-choice",
+        "title": "Containers Knowledge Check",
+        "variants": [
+          {
+            "difficulty": "easy",
+            "question": "You run `docker run nginx`. How do you access the nginx server from your browser?",
+            "options": [
+              { "id": "a", "text": "Navigate to `http://localhost:80` — the port is automatically exposed to the host" },
+              { "id": "b", "text": "You cannot — you need to use `-p 8080:80` to map a host port to the container's port", "correct": true },
+              { "id": "c", "text": "Navigate to the container's IP address" },
+              { "id": "d", "text": "Use `docker expose nginx 80`" }
+            ],
+            "explanation": "The `EXPOSE` instruction in a Dockerfile and the exposed port are internal documentation — they don't automatically map to host ports. You must use `-p <host-port>:<container-port>` to make a container's port accessible from the host.",
+            "xpReward": 30
+          },
+          {
+            "difficulty": "medium",
+            "question": "A container keeps restarting in a loop. What is the best first command to diagnose the issue?",
+            "options": [
+              { "id": "a", "text": "`docker inspect <container>`" },
+              { "id": "b", "text": "`docker logs <container>`", "correct": true },
+              { "id": "c", "text": "`docker exec -it <container> /bin/sh`" },
+              { "id": "d", "text": "`docker stats <container>`" }
+            ],
+            "explanation": "`docker logs` shows the stdout/stderr output of the container process — this is where crash error messages appear. `docker exec` won't work on a container that keeps exiting. `docker inspect` shows metadata but not application output.",
+            "xpReward": 50
+          },
+          {
+            "difficulty": "hard",
+            "question": "You run `docker stop my-container`. The container does not stop after 30 seconds. What happens next, and how could you have forced it to stop sooner?",
+            "options": [
+              { "id": "a", "text": "`docker stop` only sends SIGTERM; if the process ignores it, the container runs forever. Use `docker kill` to send SIGKILL immediately.", "correct": true },
+              { "id": "b", "text": "Docker automatically escalates to SIGKILL after 10 seconds (the default timeout)" },
+              { "id": "c", "text": "`docker stop` always force-kills after 30 seconds with no alternative" },
+              { "id": "d", "text": "The container will restart automatically due to the restart policy" }
+            ],
+            "explanation": "`docker stop` sends SIGTERM and waits for a grace period (default 10s, configurable with `--time`). After the timeout, it sends SIGKILL. If a process traps SIGTERM and doesn't exit, you can use `docker kill my-container` to send SIGKILL immediately, or `docker rm -f` to force-remove it.",
+            "xpReward": 80
+          }
+        ]
+      }
+    },
+    {
+      "stageId": "stage-volumes",
+      "storyIntro": "The Container Hall is secured. D.A.E.M.O.N. transmits a warning: 'Every file written inside a container without a volume is lost the moment that container is removed. The Volume Phantom collects that lost data — it grows stronger every time an engineer forgets to mount a volume. Let's make sure it starves.'",
+      "xpReward": 250,
+      "bossObjective": "Defeat The Volume Phantom by creating a named volume, mounting it into a container, writing data, removing the container, and verifying the data persists in a new container using the same volume.",
+      "concept": {
+        "title": "Docker Volumes",
+        "summary": "Containers have an ephemeral writable layer — any data written inside the container is lost when the container is removed. Volumes solve this by storing data outside the container's filesystem. Docker supports two primary types: named volumes (managed by Docker) and bind mounts (map a host directory into the container).",
+        "chunks": [
+          {
+            "id": "chunk-volume-types",
+            "title": "Named Volumes vs Bind Mounts",
+            "content": "Understanding the difference between named volumes and bind mounts is critical for choosing the right tool.",
+            "type": "explanation",
+            "keyPoints": [
+              "Named Volume: Docker creates and manages a directory on the host (usually in `/var/lib/docker/volumes/`). You reference it by name. Best for database data, persistent application state.",
+              "Bind Mount: You specify an exact host path (`/home/user/data`) to mount into the container. Best for development (live code sync) and config file injection.",
+              "tmpfs Mount: Stored in the host's memory only, not written to disk. Best for secrets or temporary files that should never touch disk.",
+              "Named volumes are portable (work across different host machines with Docker); bind mounts are host-specific."
+            ]
+          },
+          {
+            "id": "chunk-volume-commands",
+            "title": "Working with Volumes",
+            "content": "Commands for creating, mounting, inspecting, and managing volumes:",
+            "type": "code",
+            "code": "# Create a named volume\ndocker volume create my-data\n\n# List all volumes\ndocker volume ls\n\n# Inspect a volume (shows mount path on host)\ndocker volume inspect my-data\n\n# Run a container with a named volume\ndocker run -d \\\n  --name db \\\n  -v my-data:/var/lib/postgresql/data \\\n  -e POSTGRES_PASSWORD=secret \\\n  postgres:15\n\n# Run a container with a bind mount (host path:container path)\ndocker run -d \\\n  --name dev-app \\\n  -v $(pwd)/src:/app/src \\\n  -p 3000:3000 \\\n  my-app:dev\n\n# Remove a volume (only works if no container is using it)\ndocker volume rm my-data\n\n# Remove all unused volumes\ndocker volume prune",
+            "language": "bash",
+            "keyPoints": [
+              "Volume syntax: `-v volume-name:container-path` (named) or `-v /host/path:container-path` (bind mount)",
+              "If a named volume doesn't exist, `docker run -v` creates it automatically",
+              "A named volume persists until explicitly removed — container removal does NOT remove the volume",
+              "`docker volume prune` removes ALL volumes not currently mounted in any container — use with caution"
+            ]
+          },
+          {
+            "id": "chunk-volume-persistence",
+            "title": "Verifying Data Persistence",
+            "content": "The key test for volumes: data written in one container must be readable in another container using the same volume, even if the first container is removed.",
+            "type": "code",
+            "code": "# 1. Create a volume\ndocker volume create forge-data\n\n# 2. Write data in a container using the volume\ndocker run --rm \\\n  -v forge-data:/data \\\n  alpine sh -c 'echo \"persistent treasure\" > /data/treasure.txt'\n\n# 3. Remove the container (--rm already did this)\n# The volume still exists:\ndocker volume ls | grep forge-data\n\n# 4. Read the data in a NEW container using the same volume\ndocker run --rm \\\n  -v forge-data:/data \\\n  alpine cat /data/treasure.txt\n# Output: \"persistent treasure\" — the data survived!\n\n# Common real-world use: PostgreSQL with a named volume\ndocker run -d \\\n  --name postgres-db \\\n  -v postgres-data:/var/lib/postgresql/data \\\n  -e POSTGRES_DB=myapp \\\n  -e POSTGRES_PASSWORD=secret \\\n  postgres:15\n# Data in the database persists even if you `docker rm -f postgres-db`",
+            "language": "bash",
+            "keyPoints": [
+              "The `--rm` flag removes the container after it exits, but the volume remains",
+              "Multiple containers can share the same named volume simultaneously (use with care — concurrent writes can corrupt data)",
+              "For databases, always use named volumes — never write database files inside the container layer",
+              "`docker inspect <container>` shows the `Mounts` section with volume details"
+            ]
+          }
+        ]
+      },
+      "quest": {
+        "id": "quest-volumes-persist",
+        "title": "Anchor the Data",
+        "objective": "Create a named volume `cavern-store`. Run a container that writes the text 'the treasure endures' to a file `/data/loot.txt` using this volume, then remove the container. Create a second container using the same volume and verify `loot.txt` still contains the text.",
+        "description": "The Volume Phantom feeds on lost data. Prove that data stored in a named volume survives container removal.",
+        "type": "run-and-verify",
+        "acceptanceCriteria": [
+          "Named volume `cavern-store` exists",
+          "File `/data/loot.txt` is written via a container using the volume",
+          "First container is removed",
+          "A second container reads `loot.txt` from the same volume and outputs 'the treasure endures'",
+          "`docker volume ls` shows `cavern-store`"
+        ],
+        "hints": [
+          "Use `docker run --rm -v cavern-store:/data alpine sh -c 'echo ... > /data/loot.txt'` for the write",
+          "Use `docker run --rm -v cavern-store:/data alpine cat /data/loot.txt` for the read"
+        ],
+        "xpReward": 125
+      },
+      "challenge": {
+        "id": "challenge-volumes-mcq",
+        "type": "multiple-choice",
+        "title": "Volumes Knowledge Check",
+        "variants": [
+          {
+            "difficulty": "easy",
+            "question": "You run `docker rm my-container`. What happens to the named volume that was mounted in that container?",
+            "options": [
+              { "id": "a", "text": "The volume is deleted along with the container" },
+              { "id": "b", "text": "The volume remains; it must be removed separately with `docker volume rm`", "correct": true },
+              { "id": "c", "text": "The volume is removed only if you run `docker rm -v my-container`" },
+              { "id": "d", "text": "The volume is removed automatically after 24 hours" }
+            ],
+            "explanation": "Named volumes have an independent lifecycle from containers. `docker rm` removes the container but not its volumes. To remove the volume simultaneously, use `docker rm -v <container>` — but this only works for anonymous volumes, not named ones. Named volumes require `docker volume rm <name>`.",
+            "xpReward": 30
+          },
+          {
+            "difficulty": "medium",
+            "question": "You are developing a Node.js app and want code changes on your host to be immediately reflected inside the running container. Which volume type should you use?",
+            "options": [
+              { "id": "a", "text": "Named volume pointing to the project directory" },
+              { "id": "b", "text": "Bind mount mapping your project directory to the container's app directory", "correct": true },
+              { "id": "c", "text": "tmpfs mount for fastest writes" },
+              { "id": "d", "text": "Rebuilding the image each time you change code" }
+            ],
+            "explanation": "A bind mount (`-v $(pwd)/src:/app/src`) maps your actual host directory into the container in real time. Any file saved on the host immediately appears inside the container. Named volumes are managed by Docker and don't directly reflect host directory changes.",
+            "xpReward": 50
+          },
+          {
+            "difficulty": "hard",
+            "question": "You mount a named volume to `/app/data` in a container. The image already has files at `/app/data` (baked in during build). After mounting, what happens to those image files?",
+            "options": [
+              { "id": "a", "text": "The image files are copied into the volume on first mount, then the volume takes over", "correct": true },
+              { "id": "b", "text": "The volume is empty and the image files become inaccessible" },
+              { "id": "c", "text": "The image files and volume files are merged" },
+              { "id": "d", "text": "Docker refuses to start the container if the mount point already has files" }
+            ],
+            "explanation": "When Docker mounts a named volume to a path that already contains files in the image, it copies the image's files into the volume on the first mount (if the volume is empty). After that, the volume's contents take precedence. This is why a fresh PostgreSQL container works with a new named volume — the image initializes the volume with the default database files.",
+            "xpReward": 80
+          }
+        ]
+      }
+    },
+    {
+      "stageId": "stage-networks",
+      "storyIntro": "The Caverns are secured. Ironhands points to the Pipeworks: 'Containers in Docker are isolated by default. They can't reach each other unless you connect them. The Network Wraith scrambles those connections — but only for those who don't understand Docker's networking model. Time to understand it.'",
+      "xpReward": 300,
+      "bossObjective": "Defeat The Network Wraith by creating a custom bridge network, running two containers on it, and making them communicate using container names as DNS hostnames.",
+      "concept": {
+        "title": "Docker Networks",
+        "summary": "Docker provides an isolated network for containers. By default, containers on the default `bridge` network can communicate by IP but not by name. Custom bridge networks add automatic DNS — containers can reach each other using their names as hostnames. This is how multi-container applications talk to each other.",
+        "chunks": [
+          {
+            "id": "chunk-network-types",
+            "title": "Docker Network Types",
+            "content": "Docker ships with several network drivers. The three you need to understand as a beginner are bridge, host, and none.",
+            "type": "explanation",
+            "keyPoints": [
+              "bridge (default): Containers on the same bridge network can communicate. The default `bridge` network has no DNS. Custom bridge networks have automatic DNS by container name.",
+              "host: The container shares the host's network stack directly. No port mapping needed, but no isolation. Linux only.",
+              "none: No networking. Container is completely isolated from the network.",
+              "overlay: For multi-host networking (Docker Swarm / Kubernetes). Not needed for single-host Docker.",
+              "Custom bridge networks are the right choice for local multi-container apps."
+            ]
+          },
+          {
+            "id": "chunk-network-commands",
+            "title": "Working with Docker Networks",
+            "content": "Commands for creating, connecting, and inspecting Docker networks:",
+            "type": "code",
+            "code": "# Create a custom bridge network\ndocker network create forge-net\n\n# List all networks\ndocker network ls\n\n# Inspect a network (shows connected containers, subnet, gateway)\ndocker network inspect forge-net\n\n# Run containers on the custom network\ndocker run -d --name db --network forge-net postgres:15 -e POSTGRES_PASSWORD=secret\ndocker run -d --name api --network forge-net my-api:v1\n\n# Containers on the same custom network can reach each other by name:\n# Inside the `api` container: curl http://db:5432 OR ping db\n\n# Connect a running container to an additional network\ndocker network connect forge-net existing-container\n\n# Disconnect a container from a network\ndocker network disconnect forge-net existing-container\n\n# Remove a network (only if no containers are connected)\ndocker network rm forge-net\n\n# Remove all unused networks\ndocker network prune",
+            "language": "bash",
+            "keyPoints": [
+              "Custom bridge networks provide automatic DNS — containers reach each other by container name",
+              "The default `bridge` network does NOT have DNS; containers must use IP addresses",
+              "A container can be connected to multiple networks simultaneously",
+              "Published ports (`-p`) are independent of network settings — they control host accessibility"
+            ]
+          },
+          {
+            "id": "chunk-network-demo",
+            "title": "Container-to-Container Communication Demo",
+            "content": "A practical example of two containers communicating over a custom network using container names as hostnames:",
+            "type": "code",
+            "code": "# Step 1: Create a custom network\ndocker network create app-net\n\n# Step 2: Start a Redis container on the network\ndocker run -d --name cache --network app-net redis:alpine\n\n# Step 3: Start an app container on the same network\ndocker run -d --name webapp --network app-net -p 8080:3000 my-app:v1\n\n# Step 4: From inside the webapp container, reach Redis by name\ndocker exec -it webapp sh\n# Inside container:\n# redis-cli -h cache ping\n# => PONG  (cache = the container name, resolved via Docker DNS)\n\n# Verify from host:\ncurl localhost:8080  # webapp is reachable via the published port\n# webapp talks to 'cache:6379' internally\n\n# Without a custom network, this would fail:\ndocker network inspect app-net  # Shows both containers connected",
+            "language": "bash",
+            "keyPoints": [
+              "Both containers must be on the same custom network for name-based DNS to work",
+              "The DNS name is the container name (`--name`), not the image name",
+              "Container-to-container traffic stays inside the Docker network — it never hits the host network",
+              "This is the foundation of how Docker Compose works — it creates a default network per project"
+            ]
+          }
+        ]
+      },
+      "quest": {
+        "id": "quest-networks-connect",
+        "title": "Unseal the Pipeworks",
+        "objective": "Create a custom bridge network named `forge-network`. Run a `redis:alpine` container named `cache-node` on it. Run an `alpine` container named `network-probe` on the same network. From inside `network-probe`, ping `cache-node` by name to verify DNS resolution.",
+        "description": "The Network Wraith blocks all container-to-container communication. Prove you understand custom networks by creating one and verifying containers on it can reach each other by name.",
+        "type": "run-and-verify",
+        "acceptanceCriteria": [
+          "Network `forge-network` exists as a bridge network",
+          "Container `cache-node` (redis:alpine) is running on `forge-network`",
+          "Container `network-probe` (alpine) is running on `forge-network`",
+          "`docker exec network-probe ping -c 3 cache-node` succeeds and resolves the name"
+        ],
+        "hints": [
+          "Use `docker network inspect forge-network` to verify both containers are listed",
+          "Alpine's ping: `docker exec network-probe ping -c 3 cache-node`"
+        ],
+        "xpReward": 150
+      },
+      "challenge": {
+        "id": "challenge-networks-mcq",
+        "type": "multiple-choice",
+        "title": "Networks Knowledge Check",
+        "variants": [
+          {
+            "difficulty": "easy",
+            "question": "Two containers are running on Docker's default `bridge` network. Can they communicate using container names as hostnames?",
+            "options": [
+              { "id": "a", "text": "Yes — Docker automatically provides DNS for all containers on any network" },
+              { "id": "b", "text": "No — the default bridge network does not provide DNS; they must use IP addresses", "correct": true },
+              { "id": "c", "text": "Only if they are running the same image" },
+              { "id": "d", "text": "Only if they were started with the `--link` flag" }
+            ],
+            "explanation": "The default `bridge` network does not have Docker's embedded DNS. Containers on a user-defined custom bridge network can resolve each other by container name. The legacy `--link` flag added per-container DNS but is deprecated.",
+            "xpReward": 30
+          },
+          {
+            "difficulty": "medium",
+            "question": "A container is connected to network `frontend-net`. You want it to also communicate with containers on network `backend-net` without recreating it. What command do you use?",
+            "options": [
+              { "id": "a", "text": "`docker network add backend-net <container>`" },
+              { "id": "b", "text": "`docker network connect backend-net <container>`", "correct": true },
+              { "id": "c", "text": "`docker run --network frontend-net,backend-net <container>`" },
+              { "id": "d", "text": "You must stop and recreate the container with both networks specified" }
+            ],
+            "explanation": "`docker network connect <network> <container>` attaches a running container to an additional network without restarting it. A container can be on multiple networks simultaneously.",
+            "xpReward": 50
+          },
+          {
+            "difficulty": "hard",
+            "question": "Container A on `network-1` needs to reach Container B on `network-2`. They are not on a shared network. What is the cleanest solution?",
+            "options": [
+              { "id": "a", "text": "Use `docker network connect network-1 container-B` to put Container B on both networks", "correct": true },
+              { "id": "b", "text": "Use the host network for both containers" },
+              { "id": "c", "text": "Expose Container B's port to the host and have Container A reach it via the host IP" },
+              { "id": "d", "text": "Containers on different networks can never communicate — they must be recreated on the same network" }
+            ],
+            "explanation": "Connecting Container B to `network-1` (via `docker network connect network-1 container-B`) is the cleanest solution — it joins the existing network without recreating anything. Using the host as an intermediary works but breaks container isolation. The host network approach is a valid alternative but less clean.",
+            "xpReward": 80
+          }
+        ]
+      }
+    },
+    {
+      "stageId": "stage-compose",
+      "storyIntro": "The Pipeworks flow clean. D.A.E.M.O.N. broadcasts: 'You have mastered each component of the Forge individually. Now the final test: running them all together. The Compose Corruptor hides in multi-container setups — it preys on scattered `docker run` commands and missing dependency declarations. One file. One command. Let's end this.'",
+      "xpReward": 450,
+      "bossObjective": "Defeat The Compose Corruptor by writing a complete docker-compose.yml for a 3-service application with correct dependencies, healthchecks, and environment variables.",
+      "concept": {
+        "title": "Docker Compose",
+        "summary": "Docker Compose lets you define and run multi-container applications with a single `docker-compose.yml` file. Instead of running multiple `docker run` commands with complex flags, you declare all services, networks, and volumes in one file and manage the entire stack with `docker compose up` and `docker compose down`.",
+        "chunks": [
+          {
+            "id": "chunk-compose-yaml",
+            "title": "The docker-compose.yml Structure",
+            "content": "A Compose file has four top-level sections: `services`, `networks`, `volumes`, and `configs`. The most important is `services` — each service is a container definition.",
+            "type": "code",
+            "code": "# docker-compose.yml\nversion: \"3.9\"\n\nservices:\n  # Service 1: PostgreSQL database\n  db:\n    image: postgres:15\n    environment:\n      POSTGRES_DB: forge_app\n      POSTGRES_USER: forge\n      POSTGRES_PASSWORD: ${DB_PASSWORD}   # From .env file\n    volumes:\n      - postgres-data:/var/lib/postgresql/data\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U forge\"]\n      interval: 10s\n      timeout: 5s\n      retries: 5\n    networks:\n      - backend-net\n\n  # Service 2: Backend API\n  api:\n    build:\n      context: ./api\n      dockerfile: Dockerfile\n    environment:\n      DATABASE_URL: postgres://forge:${DB_PASSWORD}@db:5432/forge_app\n      NODE_ENV: production\n    ports:\n      - \"3001:3001\"\n    depends_on:\n      db:\n        condition: service_healthy   # Wait for db healthcheck to pass\n    networks:\n      - backend-net\n      - frontend-net\n    restart: unless-stopped\n\n  # Service 3: Frontend\n  web:\n    build: ./web\n    ports:\n      - \"8080:80\"\n    depends_on:\n      - api\n    networks:\n      - frontend-net\n    restart: unless-stopped\n\nnetworks:\n  backend-net:\n    driver: bridge\n  frontend-net:\n    driver: bridge\n\nvolumes:\n  postgres-data:",
+            "language": "yaml",
+            "keyPoints": [
+              "`depends_on` with `condition: service_healthy` waits for the healthcheck to pass — not just container start",
+              "Services on the same network reach each other by service name (e.g. `db`, `api`)",
+              "`${VARIABLE}` reads from a `.env` file in the same directory",
+              "`restart: unless-stopped` — container restarts automatically unless you explicitly stop it",
+              "Named volumes defined at the bottom are shared across services"
+            ]
+          },
+          {
+            "id": "chunk-compose-commands",
+            "title": "Essential Docker Compose Commands",
+            "content": "Compose commands for managing the lifecycle of your multi-container stack:",
+            "type": "code",
+            "code": "# Start all services (builds images if needed, creates and starts containers)\ndocker compose up\n\n# Start in detached (background) mode\ndocker compose up -d\n\n# Build/rebuild images and start\ndocker compose up -d --build\n\n# Stop and remove containers, networks (keeps volumes)\ndocker compose down\n\n# Stop and remove containers, networks, AND volumes\ndocker compose down -v\n\n# View logs for all services\ndocker compose logs\n\n# Follow logs for a specific service\ndocker compose logs -f api\n\n# List running containers in the Compose project\ndocker compose ps\n\n# Run a one-off command in a service container\ndocker compose exec api bash\n\n# Scale a service to multiple replicas\ndocker compose up -d --scale api=3\n\n# Validate the compose file without starting anything\ndocker compose config",
+            "language": "bash",
+            "keyPoints": [
+              "`docker compose up -d --build` — the standard dev loop command: rebuild and start everything",
+              "`docker compose down -v` — full cleanup including data volumes; use when you want a clean slate",
+              "`docker compose logs -f <service>` — tail logs for a specific service",
+              "`docker compose exec` — exec into a running service container (no need to know the container ID)",
+              "`docker compose config` — validates YAML and shows the merged, interpolated configuration"
+            ]
+          },
+          {
+            "id": "chunk-compose-env",
+            "title": "Environment Variables and .env Files",
+            "content": "Compose supports `.env` files for variable substitution. This keeps secrets out of your `docker-compose.yml` and allows different configs for dev and production.",
+            "type": "code",
+            "code": "# .env file (in same directory as docker-compose.yml)\nDB_PASSWORD=supersecretpassword\nNODE_ENV=development\nAPI_PORT=3001\n\n# docker-compose.yml references them with ${VARIABLE}\nservices:\n  api:\n    environment:\n      - NODE_ENV=${NODE_ENV}\n    ports:\n      - \"${API_PORT}:3001\"\n\n# Override .env values inline:\ndocker compose --env-file .env.prod up -d\n\n# Or set them in the shell environment (takes precedence over .env)\nexport DB_PASSWORD=prodpassword\ndocker compose up -d\n\n# Use env_file to load variables from a file INTO the container:\nservices:\n  api:\n    env_file:\n      - ./api/.env.local  # Loaded as env vars inside the container",
+            "language": "bash",
+            "keyPoints": [
+              "`.env` file variables are substituted into `docker-compose.yml` at parse time",
+              "`env_file` loads variables INTO the container's environment; different from `.env` variable substitution",
+              "Shell environment variables override `.env` file values",
+              "Add `.env` to `.gitignore` — never commit secrets to version control"
+            ]
+          }
+        ]
+      },
+      "quest": {
+        "id": "quest-compose-fullstack",
+        "title": "Forge the Complete Stack",
+        "objective": "Write a `docker-compose.yml` that defines three services: `db` (postgres:15), `api` (your custom image), and `web` (nginx:alpine). Include: a named volume for postgres data, a shared network, a healthcheck on `db`, and `depends_on` with `condition: service_healthy` for `api`.",
+        "description": "The Compose Corruptor's power comes from disorder. A complete, correct Compose file defeats it. Build the full Forge stack in one file.",
+        "type": "write-and-apply",
+        "acceptanceCriteria": [
+          "`docker-compose.yml` is valid (passes `docker compose config`)",
+          "All 3 services start with `docker compose up -d`",
+          "Named volume for postgres data is defined",
+          "`api` uses `depends_on` with `condition: service_healthy` referencing `db`",
+          "`db` has a healthcheck defined",
+          "All services are on a shared custom network"
+        ],
+        "hints": [
+          "Use `docker compose config` to validate before running",
+          "Use `docker compose logs db` to check if the database healthcheck is passing"
+        ],
+        "xpReward": 225
+      },
+      "challenge": {
+        "id": "challenge-compose-mcq",
+        "type": "multiple-choice",
+        "title": "Docker Compose Knowledge Check",
+        "variants": [
+          {
+            "difficulty": "easy",
+            "question": "What command starts all services defined in a `docker-compose.yml` in the background?",
+            "options": [
+              { "id": "a", "text": "`docker compose start -d`" },
+              { "id": "b", "text": "`docker compose up -d`", "correct": true },
+              { "id": "c", "text": "`docker compose run --detach`" },
+              { "id": "d", "text": "`docker-compose background`" }
+            ],
+            "explanation": "`docker compose up -d` creates and starts all services in detached mode. The `-d` flag runs them in the background so your terminal isn't attached to their output.",
+            "xpReward": 30
+          },
+          {
+            "difficulty": "medium",
+            "question": "You use `depends_on: [db]` for your `api` service. The database takes 15 seconds to initialize after the container starts. What problem will you encounter, and how do you fix it?",
+            "options": [
+              { "id": "a", "text": "`depends_on` fully waits for the dependency to be ready — there is no problem" },
+              { "id": "b", "text": "`depends_on` only waits for the container to start, not for the service inside to be ready. Fix: add a healthcheck to `db` and use `condition: service_healthy`.", "correct": true },
+              { "id": "c", "text": "Add a `sleep 15` to the `api` entrypoint command" },
+              { "id": "d", "text": "Use `restart: always` on the `api` service to retry until the db is ready" }
+            ],
+            "explanation": "`depends_on` without a condition only waits for the container process to start, not for the application inside to be ready. PostgreSQL, MySQL, and similar databases take time to initialize. Using `condition: service_healthy` with a healthcheck ensures `api` only starts after `db` passes its health test.",
+            "xpReward": 50
+          },
+          {
+            "difficulty": "hard",
+            "question": "You run `docker compose down`. Then run `docker compose up -d`. Your PostgreSQL database has no data. What most likely went wrong?",
+            "options": [
+              { "id": "a", "text": "The postgres image doesn't support data persistence" },
+              { "id": "b", "text": "`docker compose down` was run with the `-v` flag, which deleted the named volume", "correct": true },
+              { "id": "c", "text": "Named volumes are not persistent across Compose runs" },
+              { "id": "d", "text": "The Compose project name changed between runs, so a new volume was created" }
+            ],
+            "explanation": "`docker compose down` without flags preserves named volumes. `docker compose down -v` (or `--volumes`) removes all named volumes declared in the Compose file — including your database volume. This is the most common cause of 'where did my data go?' in Docker Compose. Always double-check before running `down -v` in any environment with data you care about.",
+            "xpReward": 80
+          }
+        ]
+      }
+    }
+  ],
+  "skillTree": {
+    "nodes": [
+      {
+        "id": "skill-dockerfile-basics",
+        "name": "Dockerfile Fundamentals",
+        "description": "Write clean, efficient Dockerfiles with proper layer caching",
+        "unlockedByStage": "stage-images",
+        "prerequisites": [],
+        "xpCost": 0
+      },
+      {
+        "id": "skill-multistage-builds",
+        "name": "Multi-Stage Builds",
+        "description": "Produce minimal production images using multi-stage Dockerfile builds",
+        "unlockedByStage": "stage-images",
+        "prerequisites": ["skill-dockerfile-basics"],
+        "xpCost": 50
+      },
+      {
+        "id": "skill-container-lifecycle",
+        "name": "Container Lifecycle",
+        "description": "Run, inspect, debug, stop, and remove containers confidently",
+        "unlockedByStage": "stage-containers",
+        "prerequisites": ["skill-dockerfile-basics"],
+        "xpCost": 75
+      },
+      {
+        "id": "skill-volume-management",
+        "name": "Volume Management",
+        "description": "Persist data with named volumes and bind mounts",
+        "unlockedByStage": "stage-volumes",
+        "prerequisites": ["skill-container-lifecycle"],
+        "xpCost": 75
+      },
+      {
+        "id": "skill-network-design",
+        "name": "Container Networking",
+        "description": "Create custom networks and enable DNS-based container communication",
+        "unlockedByStage": "stage-networks",
+        "prerequisites": ["skill-container-lifecycle"],
+        "xpCost": 100
+      },
+      {
+        "id": "skill-compose-mastery",
+        "name": "Compose Mastery",
+        "description": "Define and manage multi-container applications with Docker Compose",
+        "unlockedByStage": "stage-compose",
+        "prerequisites": ["skill-volume-management", "skill-network-design"],
+        "xpCost": 150
+      },
+      {
+        "id": "skill-master-forgemaster",
+        "name": "Master Forgemaster",
+        "description": "Complete mastery of all five Docker fundamentals",
+        "unlockedByStage": "stage-compose",
+        "prerequisites": ["skill-compose-mastery", "skill-multistage-builds"],
+        "xpCost": 200
+      }
+    ]
+  },
+  "discoveries": [
+    {
+      "id": "discovery-image-layers",
+      "title": "The Secret of Layers",
+      "type": "scroll",
+      "xpReward": 25,
+      "coinReward": 10,
+      "content": {
+        "type": "text",
+        "text": "Each RUN, COPY, and ADD instruction in a Dockerfile creates a new read-only layer. Docker caches layers to speed rebuilds — but only if the instructions above them haven't changed. Order matters more than you think."
+      }
+    },
+    {
+      "id": "discovery-multistage-build",
+      "title": "The Multistage Secret",
+      "type": "shrine",
+      "xpReward": 50,
+      "coinReward": 25,
+      "content": {
+        "type": "code",
+        "code": "FROM node:18 AS builder\nWORKDIR /app\nRUN npm ci && npm run build\n\nFROM node:18-alpine\nWORKDIR /app\nCOPY --from=builder /app/dist ./dist\nCMD [\"node\", \"dist/server.js\"]",
+        "language": "dockerfile",
+        "caption": "Build tools in the first stage. Ship only compiled output in the final stage. Result: 120MB instead of 1GB."
+      }
+    },
+    {
+      "id": "discovery-named-volumes",
+      "title": "Data That Survives",
+      "type": "chest",
+      "xpReward": 30,
+      "coinReward": 15,
+      "content": {
+        "type": "code",
+        "code": "# Named volume — survives container removal\ndocker run -d -v forge-data:/app/data my-app\n\n# Verify data persisted after container removal\ndocker rm -f my-app\ndocker run -d -v forge-data:/app/data my-app\n# Data is still there",
+        "language": "bash",
+        "caption": "Named volumes are managed by Docker. They outlive containers — the container can die but the volume persists."
+      }
+    },
+    {
+      "id": "discovery-bridge-networks",
+      "title": "The Bridge Between Worlds",
+      "type": "scroll",
+      "xpReward": 35,
+      "coinReward": 15,
+      "content": {
+        "type": "code",
+        "code": "# Create a custom bridge network\ndocker network create forge-net\n\n# Containers on the same network find each other by name\ndocker run -d --name api --network forge-net my-api\ndocker run -d --name db --network forge-net postgres\n\n# 'api' can reach 'db' at http://db:5432\n# No IP addresses needed — Docker's built-in DNS",
+        "language": "bash",
+        "caption": "Custom bridge networks give containers DNS resolution by name. The default bridge network does not."
+      }
+    },
+    {
+      "id": "discovery-compose-services",
+      "title": "The Orchestration Rune",
+      "type": "shrine",
+      "xpReward": 60,
+      "coinReward": 30,
+      "content": {
+        "type": "code",
+        "code": "services:\n  web:\n    build: .\n    ports:\n      - \"3000:3000\"\n    depends_on:\n      db:\n        condition: service_healthy\n  db:\n    image: postgres:16-alpine\n    environment:\n      POSTGRES_PASSWORD: secret\n    healthcheck:\n      test: [\"CMD\", \"pg_isready\"]\n      interval: 5s\n      retries: 5",
+        "language": "yaml",
+        "caption": "depends_on with condition: service_healthy waits for the healthcheck to pass before starting dependent services."
+      }
+    }
+  ]
+}

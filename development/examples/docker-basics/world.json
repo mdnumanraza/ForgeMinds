@@ -1,0 +1,350 @@
+{
+  "$schema": "forgeMinds/world/v1",
+  "version": "1.0.0",
+  "id": "world-docker-basics",
+  "name": "The Container Forge",
+  "topic": "Docker",
+  "theme": "industrial-foundry",
+  "atmosphere": "container-forge",
+  "description": "Deep in the heart of the industrial district, a massive forge burns day and night. Here, raw application code is smelted into immutable images, poured into containers, and sent out into the world. You are an apprentice Forgemaster — your task: learn every furnace, valve, and pipeline in the Forge before the entropy of broken containers shuts it down forever.",
+  "lore": {
+    "worldOrigin": "The Container Forge was built by the first engineers who realized that 'it works on my machine' was not an acceptable answer. They forged a system where every application was sealed into an Image — a perfect, repeatable artifact — and run in a Container, isolated from everything else. The Forge is their legacy, and it is yours to master.",
+    "factionName": "The Forgemasters' Guild",
+    "enemyFactionName": "The Entropy Collective",
+    "coreConflict": "The Entropy Collective has infiltrated the Forge, corrupting images, breaking containers, and flooding the network with phantom traffic. As an apprentice Forgemaster, you must fight through five sectors of the Forge to restore order and earn your master's seal."
+  },
+  "visualTheme": {
+    "primaryColor": "#1a0a00",
+    "accentColor": "#ff6b35",
+    "backgroundGradient": ["#0d0500", "#1a0a00", "#2d1500"],
+    "particleEffect": "floating-sparks",
+    "ambientSound": "forge-ambient",
+    "fontOverride": null
+  },
+  "stages": [
+    {
+      "id": "stage-images",
+      "name": "The Image Foundry",
+      "order": 1,
+      "position": { "x": 100, "y": 500 },
+      "nodeIconKey": "image",
+      "description": "Where raw Dockerfiles are smelted into immutable images. Every container in the Forge begins its life here. The Foundry is the source — and the Bloated Image is its corruption.",
+      "unlockCondition": { "type": "always" },
+      "atmosphereOverride": null,
+      "boss": {
+        "id": "boss-bloated-image",
+        "name": "The Bloated Image",
+        "title": "Hoarder of Unnecessary Layers",
+        "description": "A Docker image that has accumulated hundreds of unnecessary layers over countless undisciplined builds. It consumes disk space voraciously, slows every pull, and crashes registries with its sheer size. Its weakness is a clean, multi-stage Dockerfile.",
+        "health": 100,
+        "maxHealth": 100,
+        "attackPattern": "disk-flood",
+        "weaknesses": ["multi-stage-build", "alpine-base", "layer-optimization"],
+        "defeatCondition": "Write a Dockerfile that produces an image under 50MB using multi-stage builds",
+        "rewardXp": 150,
+        "rewardLoot": "Foundry Seal",
+        "sprite": "boss-bloated-image"
+      }
+    },
+    {
+      "id": "stage-containers",
+      "name": "The Container Hall",
+      "order": 2,
+      "position": { "x": 300, "y": 400 },
+      "nodeIconKey": "container",
+      "description": "The vast hall where images are brought to life as running containers. Every process, every open port, every environment variable originates here. Master the Hall and you master the runtime.",
+      "unlockCondition": { "type": "stageComplete", "stageId": "stage-images" },
+      "atmosphereOverride": null,
+      "boss": {
+        "id": "boss-zombie-container",
+        "name": "The Zombie Container",
+        "title": "The Undying Process",
+        "description": "A container that should have exited long ago. Its main process died, but the container lingers — consuming a container slot, holding a port hostage, and responding to nothing. It cannot be stopped by ordinary means; only a properly understood `docker rm -f` pattern will end it.",
+        "health": 150,
+        "maxHealth": 150,
+        "attackPattern": "port-block",
+        "weaknesses": ["container-lifecycle", "restart-policy", "force-remove"],
+        "defeatCondition": "Demonstrate understanding of container lifecycle states and cleanup commands",
+        "rewardXp": 200,
+        "rewardLoot": "Container Master's Gauntlet",
+        "sprite": "boss-zombie-container"
+      }
+    },
+    {
+      "id": "stage-volumes",
+      "name": "The Volume Caverns",
+      "order": 3,
+      "position": { "x": 500, "y": 300 },
+      "nodeIconKey": "volume",
+      "description": "Deep beneath the Forge, the Volume Caverns store all persistent data. Containers are ephemeral — their data dies with them — unless it is anchored here. The Volume Phantom preys on engineers who forget this fundamental truth.",
+      "unlockCondition": { "type": "stageComplete", "stageId": "stage-containers" },
+      "atmosphereOverride": "cavern-glow",
+      "boss": {
+        "id": "boss-volume-phantom",
+        "name": "The Volume Phantom",
+        "title": "Devourer of Ephemeral Data",
+        "description": "An entity born from every piece of data that was written inside a container and lost when the container was removed. The Phantom haunts engineers who don't mount volumes, consuming their work silently at container exit.",
+        "health": 175,
+        "maxHealth": 175,
+        "attackPattern": "data-erasure",
+        "weaknesses": ["named-volume", "bind-mount", "volume-inspect"],
+        "defeatCondition": "Mount a named volume and verify data persists after container removal and recreation",
+        "rewardXp": 250,
+        "rewardLoot": "Cavern Keystone",
+        "sprite": "boss-volume-phantom"
+      }
+    },
+    {
+      "id": "stage-networks",
+      "name": "The Network Pipeworks",
+      "order": 4,
+      "position": { "x": 700, "y": 200 },
+      "nodeIconKey": "network",
+      "description": "The labyrinthine pipe system that carries data between containers, between the Forge and the outside world, and between isolated network segments. The Network Wraith corrupts routing tables and drops packets at will.",
+      "unlockCondition": { "type": "stageComplete", "stageId": "stage-volumes" },
+      "atmosphereOverride": null,
+      "boss": {
+        "id": "boss-network-wraith",
+        "name": "The Network Wraith",
+        "title": "Corruptor of Bridge Tables",
+        "description": "A specter that haunts Docker's virtual network bridges, scrambling DNS entries and blocking container-to-container communication. Containers in different custom networks cannot reach each other while the Wraith persists.",
+        "health": 200,
+        "maxHealth": 200,
+        "attackPattern": "packet-drop",
+        "weaknesses": ["custom-bridge-network", "container-dns", "network-connect"],
+        "defeatCondition": "Create a custom bridge network and make two containers communicate using container names as DNS",
+        "rewardXp": 300,
+        "rewardLoot": "Network Wraith Crystal",
+        "sprite": "boss-network-wraith"
+      }
+    },
+    {
+      "id": "stage-compose",
+      "name": "The Compose Foundry",
+      "order": 5,
+      "position": { "x": 900, "y": 100 },
+      "nodeIconKey": "compose",
+      "description": "The master control room of the Forge — where entire multi-container applications are defined in a single file and brought up with a single command. The Compose Corruptor scrambles service definitions and breaks dependency ordering.",
+      "unlockCondition": { "type": "stageComplete", "stageId": "stage-networks" },
+      "atmosphereOverride": "control-room-night",
+      "boss": {
+        "id": "boss-compose-corruptor",
+        "name": "The Compose Corruptor",
+        "title": "Breaker of Service Dependencies",
+        "description": "A chaotic force that inhabits `docker-compose.yml` files, scrambling `depends_on` declarations, injecting syntax errors, and overriding port mappings so nothing starts in the right order. Only a deeply understood Compose file can repel it.",
+        "health": 275,
+        "maxHealth": 275,
+        "attackPattern": "dependency-scramble",
+        "weaknesses": ["depends-on", "healthcheck", "env-file"],
+        "defeatCondition": "Write a complete docker-compose.yml for a 3-service app (web, api, db) with proper dependencies and healthchecks",
+        "rewardXp": 450,
+        "rewardLoot": "Master Forgemaster's Seal",
+        "sprite": "boss-compose-corruptor"
+      }
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc-mentor-ironhands",
+      "name": "Ironhands",
+      "role": "mentor",
+      "title": "Master Forgemaster, Guild of Containers",
+      "description": "A grizzled veteran of the container revolution who has been running Docker since before Swarm was deprecated. Ironhands believes in doing things right the first time and has strong opinions about base image selection.",
+      "avatar": "npc-ironhands",
+      "dialogueStyle": "gruff-experienced",
+      "unlockStage": "stage-images",
+      "hintUnlockThreshold": 50,
+      "position": { "x": 320, "y": 240 },
+      "zone": "overworld",
+      "patrolPath": [
+        { "x": 290, "y": 240 },
+        { "x": 380, "y": 240 }
+      ],
+      "introDialogue": "You want to be a Forgemaster? Fine. But we do this right. First lesson: images are immutable. Once forged, they don't change. Everything starts with a good Dockerfile. Let's see what you've got.",
+      "hintDialogues": [
+        "Every RUN command in a Dockerfile adds a layer. Chain your commands with && and you'll keep images lean. The Bloated Image feeds on your laziness.",
+        "Containers are not virtual machines. They share the host kernel. That's their power and their constraint — don't forget either.",
+        "Named volumes outlive containers. Bind mounts depend on the host path. Know which one you need before you reach for either."
+      ]
+    },
+    {
+      "id": "npc-guide-daemon",
+      "name": "D.A.E.M.O.N.",
+      "role": "guide",
+      "title": "Docker Automated Environment Monitor & Operations Node",
+      "description": "The Forge's built-in AI assistant — a digital manifestation of the Docker daemon itself. D.A.E.M.O.N. monitors all container activity and can surface the exact command you need for any situation, though it occasionally appends unnecessary flags out of habit.",
+      "avatar": "npc-daemon",
+      "dialogueStyle": "technical-helpful",
+      "unlockStage": "stage-images",
+      "hintUnlockThreshold": 0,
+      "position": { "x": 512, "y": 176 },
+      "zone": "overworld",
+      "patrolPath": null,
+      "introDialogue": "DAEMON online. All containers nominal. Rogue processes detected in sectors 1 through 5. Recommend: begin with `docker pull hello-world`. Confidence: 99.7%.",
+      "hintDialogues": [
+        "`docker ps -a` shows all containers — including the stopped ones you forgot about. They add up.",
+        "Confused about networking? `docker network inspect <name>` shows you every container connected, its IP, and its aliases.",
+        "`docker system prune` when the disk is full. But read the output before you confirm. Every time."
+      ]
+    }
+  ],
+  "enemies": [
+    {
+      "id": "enemy-dangling-image",
+      "name": "Dangling Image Wraith",
+      "description": "An intermediate build layer that was left behind after a rebuild — an untagged image consuming disk space and appearing as '<none>' in `docker images`. Harmless alone, but dozens of them will cripple a build server.",
+      "health": 30,
+      "maxHealth": 30,
+      "attackType": "disk-leak",
+      "xpReward": 20,
+      "spawnStages": ["stage-images"],
+      "sprite": "enemy-dangling-image",
+      "spawnZone": "zone-foundry",
+      "spawnCount": 3,
+      "roamRadius": 64,
+      "encounterType": "mcq",
+      "linkedChallengeId": "challenge-images-mcq"
+    },
+    {
+      "id": "enemy-stopped-container",
+      "name": "Stopped Container Ghost",
+      "description": "A container in the `Exited` state that nobody has cleaned up. It holds onto its filesystem layer, its allocated name, and its network reservation, even though it will never run again.",
+      "health": 25,
+      "maxHealth": 25,
+      "attackType": "resource-squatter",
+      "xpReward": 15,
+      "spawnStages": ["stage-containers", "stage-volumes"],
+      "sprite": "enemy-stopped-container",
+      "spawnZone": "zone-container-hall",
+      "spawnCount": 2,
+      "roamRadius": 48,
+      "encounterType": "mcq",
+      "linkedChallengeId": "challenge-containers-mcq"
+    },
+    {
+      "id": "enemy-port-conflict-demon",
+      "name": "Port Conflict Demon",
+      "description": "Spawns when two containers attempt to bind to the same host port. It blocks both from starting and emits an `address already in use` error — cryptic enough to confuse engineers who don't understand host vs container port mapping.",
+      "health": 50,
+      "maxHealth": 50,
+      "attackType": "port-block",
+      "xpReward": 30,
+      "spawnStages": ["stage-containers", "stage-networks"],
+      "sprite": "enemy-port-conflict-demon",
+      "spawnZone": "zone-network-pipeworks",
+      "spawnCount": 2,
+      "roamRadius": 80,
+      "encounterType": "mcq",
+      "linkedChallengeId": "challenge-networks-mcq"
+    }
+  ],
+  "tilemap": {
+    "tilemapKey": "world-docker-basics",
+    "tilemapPath": "/content/tilemaps/docker-basics/world.tmj",
+    "tilesetKey": "tileset-forge",
+    "tilesetPath": "/content/tilesets/forge.png",
+    "spawnPoint": { "x": 320, "y": 480 },
+    "tileSize": 16,
+    "scale": 2
+  },
+  "zones": [
+    {
+      "id": "zone-foundry",
+      "name": "The Image Foundry",
+      "type": "dungeon",
+      "linkedStageId": "stage-images",
+      "entranceTile": { "x": 6, "y": 8 },
+      "tilemapPath": "/content/tilemaps/docker-basics/zone-foundry.tmj",
+      "bgmKey": "bgm-dungeon-forge",
+      "unlockCondition": { "type": "world_start" }
+    },
+    {
+      "id": "zone-container-hall",
+      "name": "The Container Hall",
+      "type": "dungeon",
+      "linkedStageId": "stage-containers",
+      "entranceTile": { "x": 18, "y": 8 },
+      "tilemapPath": "/content/tilemaps/docker-basics/zone-container-hall.tmj",
+      "bgmKey": "bgm-dungeon-forge",
+      "unlockCondition": { "type": "stage_complete", "stageId": "stage-images" }
+    },
+    {
+      "id": "zone-volume-caverns",
+      "name": "The Volume Caverns",
+      "type": "cave",
+      "linkedStageId": "stage-volumes",
+      "entranceTile": { "x": 12, "y": 16 },
+      "tilemapPath": "/content/tilemaps/docker-basics/zone-volume-caverns.tmj",
+      "bgmKey": "bgm-cave",
+      "unlockCondition": { "type": "stage_complete", "stageId": "stage-containers" }
+    },
+    {
+      "id": "zone-network-pipeworks",
+      "name": "The Network Pipeworks",
+      "type": "dungeon",
+      "linkedStageId": "stage-networks",
+      "entranceTile": { "x": 24, "y": 14 },
+      "tilemapPath": "/content/tilemaps/docker-basics/zone-network-pipeworks.tmj",
+      "bgmKey": "bgm-dungeon-tech",
+      "unlockCondition": { "type": "stage_complete", "stageId": "stage-volumes" }
+    },
+    {
+      "id": "zone-compose-foundry",
+      "name": "The Compose Foundry",
+      "type": "boss-area",
+      "linkedStageId": "stage-compose",
+      "entranceTile": { "x": 28, "y": 6 },
+      "tilemapPath": "/content/tilemaps/docker-basics/zone-compose-foundry.tmj",
+      "bgmKey": "bgm-boss-intro",
+      "unlockCondition": { "type": "stage_complete", "stageId": "stage-networks" }
+    }
+  ],
+  "interactables": [
+    {
+      "id": "interactable-scroll-layers",
+      "type": "scroll",
+      "position": { "x": 224, "y": 352 },
+      "linkedDiscoveryId": "discovery-image-layers",
+      "spriteKey": "sprite-scroll",
+      "glowColor": "#ff6b35"
+    },
+    {
+      "id": "interactable-shrine-multistage",
+      "type": "shrine",
+      "position": { "x": 448, "y": 288 },
+      "linkedDiscoveryId": "discovery-multistage-build",
+      "spriteKey": "sprite-shrine",
+      "glowColor": "#ff9900"
+    },
+    {
+      "id": "interactable-chest-volumes",
+      "type": "chest",
+      "position": { "x": 160, "y": 416 },
+      "linkedDiscoveryId": "discovery-named-volumes",
+      "spriteKey": "sprite-chest",
+      "glowColor": "#f7d060"
+    },
+    {
+      "id": "interactable-scroll-networks",
+      "type": "scroll",
+      "position": { "x": 576, "y": 192 },
+      "linkedDiscoveryId": "discovery-bridge-networks",
+      "spriteKey": "sprite-scroll",
+      "glowColor": "#4fc3f7"
+    },
+    {
+      "id": "interactable-shrine-compose",
+      "type": "shrine",
+      "position": { "x": 384, "y": 160 },
+      "linkedDiscoveryId": "discovery-compose-services",
+      "spriteKey": "sprite-shrine",
+      "glowColor": "#ff6b35"
+    }
+  ],
+  "completionReward": {
+    "title": "Master Forgemaster",
+    "description": "You have conquered all five sectors of the Container Forge. The Forgemasters' Guild has granted you the rank of Master Forgemaster. Every image, container, volume, network, and Compose file bends to your will.",
+    "xpBonus": 500,
+    "badgeKey": "docker-basics-complete"
+  }
+}
