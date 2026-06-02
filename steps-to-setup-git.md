@@ -1,4 +1,4 @@
-- git clone https://github.com/mdnumanraza/ForgeMinds.git
+- git clone https://<pat-token>@github.com/mdnumanraza/ForgeMinds.git
 - cd ForgeMinds
 - do changes
 - git add .
