@@ -1,89 +1,158 @@
 # ForgeMinds — Development
 
-This directory is the **source of truth** for the project. All development-related work — design docs, system specs, phase plans, decision records, progress notes — lives here.
+> **New to this project? Read this file + `PROJECT_STATUS.md`. That's all you need to be oriented.**
 
-> Read [`working-style.md`](./working-style.md) first — it sets the rules for how we work.
+---
 
-## How this directory is organized
+## What is ForgeMinds?
 
-The structure follows the planning order: **Game Discovery → Architecture Discovery → Design Decisions → Master Roadmap → Milestones → Development.** Cross-cutting concerns (content, assets, game-design, decisions, human tasks) live in their own top-level folders.
+ForgeMinds is a **story-driven RPG learning platform**. Players learn real technical skills — Kubernetes, Linux, Docker — by playing an adventure game, not by taking a course. The first game is **Kubernetes Kingdom**: a retro JRPG where a summoned hero restores a wounded kingdom by understanding how it works.
+
+The core principle: **knowledge becomes gameplay**. Kubernetes concepts are the wounds in the world. Learning them is how the player heals it.
+
+---
+
+## Current Project State
+
+**Phase:** Game design complete. Documentation structured. Ready for architecture and implementation planning.
+
+**What exists:**
+- ✅ Game vision, gameplay loop, and full campaign design (14 stages)
+- ✅ Campaign review with prioritised issues
+- ✅ Marketing narrative (4-act story)
+- ✅ 15-milestone production roadmap
+
+**What's next:** See `PROJECT_STATUS.md`
+
+---
+
+## Where to Start Reading
+
+| If you want to... | Read... |
+|---|---|
+| Understand the project quickly | This file + `PROJECT_STATUS.md` |
+| Understand what we're building | `game-design/ai-vision.md` |
+| Understand the gameplay | `game-design/ai-gameplay-loop.md` |
+| Understand the full campaign | `game-design/ai-campaign-structure.md` |
+| Understand what's been decided | `DECISIONS.md` |
+| Understand what needs doing | `PROJECT_STATUS.md` |
+| Read the story (non-technical) | `story/` |
+| Understand how we collaborate | `working-style.md` |
+
+---
+
+## Folder Structure
 
 ```
 development/
-├── working-style.md            ← rules for collaborating on this project
-├── README.md                   ← this file
 │
-├── 00-game-discovery/          ← Stage 1: vision, target feel, player fantasy
-├── 01-architecture-discovery/  ← Stage 2: candidate technical architectures
-├── 02-design-decisions/        ← Stage 3: lock gameplay/progression/world/learning/combat (as ADRs)
-├── roadmap/                    ← Stage 4: ai-master-roadmap.md (executive summary of all 15 milestones)
-├── 04-milestones/              ← Stage 5: one folder per milestone (01–15)
+├── PROJECT_STATUS.md        ← START HERE: current state, next actions, blockers
+├── CHANGELOG.md             ← Major decisions and changes log
+├── DECISIONS.md             ← All locked design decisions (ADR-style)
+├── BACKLOG.md               ← Deferred work and future ideas
+├── working-style.md         ← Collaboration rules (mandatory reading)
 │
-├── content-architecture/       ← How campaigns/stages/quests/NPCs/etc. are stored & themed
-├── assets/                     ← Asset strategy (fantasy/ + space/ subfolders)
-├── game-design/                ← Per-system design stubs (vision, loop, progression, …)
-├── decisions/                  ← Architecture Decision Records (ADRs) + index + template
-├── human-tasks/                ← Master tracker of work that requires you (the human)
-└── prompts/                    ← Saved planning prompts (e.g. prompt1.md)
+├── game-design/             ← CANONICAL GAME DESIGN DOCUMENTS
+│   ├── ai-vision.md             ← Highest-priority doc. All decisions cite this.
+│   ├── ai-gameplay-loop.md      ← Three-scale loop design
+│   ├── ai-campaign-structure.md ← Full Kubernetes Kingdom campaign (14 stages)
+│   ├── ai-act-transition.md     ← Character arc map across acts
+│   ├── ai-kubernetes-campaign-review.md  ← Post-design review (20 issues)
+│   └── [system stubs]           ← Boss, dialogue, enemy, quest, etc. — fill per milestone
+│
+├── milestones/              ← MILESTONE EXECUTION
+│   ├── ai-master-roadmap.md     ← 15-milestone executive summary
+│   ├── milestone-01-game-discovery/  ← Active milestone (phase files inside)
+│   └── milestones-02-to-15.md   ← Stubs for unopened milestones
+│
+├── story/                   ← MARKETING NARRATIVE (no technical terms)
+│   ├── act-1-the-hollow-kingdom.md
+│   ├── act-2-the-long-restoration.md
+│   ├── act-3-the-deep-kingdom.md
+│   └── final-the-reckoning.md
+│
+├── content-architecture/    ← CONTENT SCHEMAS (fill in Milestone 04)
+├── assets/                  ← ASSET STRATEGY (fill in Milestone 05)
+│   ├── fantasy/
+│   └── space/
+│
+├── discovery/               ← OPEN DESIGN TENSIONS
+│   └── open-tensions.md         ← 3 tensions: 1 resolved, 1 partial, 1 open
+│
+└── prompts/                 ← PLANNING PROMPTS (archive)
+    ├── prompt1.md through prompt4.md
 ```
 
-## Index
+---
 
-### Foundation
-- [Working Style](./working-style.md) — how we collaborate on this project. **Mandatory reading.**
-- [Master Roadmap](./roadmap/ai-master-roadmap.md) — executive summary of all 15 milestones.
+## Current Milestone
 
-### Planning stages (upstream of code)
-- [00 — Game Discovery](./00-game-discovery/) — vision, target feel, player fantasy, success criteria. Locks nothing.
-- [01 — Architecture Discovery](./01-architecture-discovery/) — candidate rendering, state, content, AI-layer, save options.
-- [02 — Design Decisions](./02-design-decisions/) — locks gameplay loop, progression, world, learning delivery, combat.
+**Milestone 02 — Content Architecture** · Phase 2.1 (Content Hierarchy) is the first to execute.
 
-### Milestones (detail per milestone)
-- [04 — Milestones](./04-milestones/) — one folder per milestone, 01 through 15. Each milestone has its own `ai-overview.md` plus its phase docs.
+Planning docs: `milestones/milestone-02-content-architecture/`
 
-### Cross-cutting
-- [Content Architecture](./content-architecture/) — schemas for campaigns, stages, quests, NPCs, enemies, bosses, dialogs, questions, rewards, items.
-- [Assets](./assets/) — required assets, sources, gaps. Fantasy + Space themes.
-- [Game Design](./game-design/) — preliminary stubs for vision, gameplay loop, progression, campaign, quest, enemy, boss, dialogue, knowledge, reward, inventory, save.
-- [Decisions (ADRs)](./decisions/) — Architecture Decision Records. Anything we lock, we record here with rationale.
-- [Human Tasks](./human-tasks/) — master tracker of work that requires you (asset selection, playtesting, theme/art decisions, architecture approval, …).
+## Next Milestone
 
-## File naming convention
+**Milestone 03 — Design Decisions** · Opens after M02 Phase 2.8 (critical decisions review).
 
-- **`ai-*.md`** — written and maintained by AI.
-- **`you-*.md`** — requires human action (collection, review, decision, playtesting).
+---
 
-This convention applies to every file in this directory. When in doubt, the file's `> **Owned by:**` header tells you definitively.
+## Canonical Documents
 
-## Stub format
+These are the load-bearing documents. Every other file is either a stub, a review, or a working log.
 
-Every planning file is created as a stub first and deepened later. Stubs use this exact format so they're recognizable at a glance:
+| Document | What it is | Priority |
+|---|---|---|
+| `game-design/ai-vision.md` | Game vision — all decisions cite this | 🔴 Highest |
+| `game-design/ai-campaign-structure.md` | Full campaign design | 🔴 Highest |
+| `game-design/ai-gameplay-loop.md` | Three-scale gameplay loop | 🟠 High |
+| `milestones/ai-master-roadmap.md` | 15-milestone plan | 🟠 High |
+| `DECISIONS.md` | All locked decisions | 🟠 High |
+| `PROJECT_STATUS.md` | Current state + next actions | 🟡 Always current |
+| `milestones/milestone-02-content-architecture/ai-overview.md` | M02 goals, phases, dependencies | 🟡 Active milestone |
+| `milestones/milestone-02-content-architecture/ai-content-entity-inventory.md` | 40 content entity types | 🟡 Active milestone |
 
-```markdown
-# <Title>
+---
 
-> **Purpose:** <one-line purpose>
-> **Status:** Stub — not yet detailed.
-> **Owned by:** <AI | Human>
+## Ownership
 
-## TODO
-- [ ] <what we'll plan inside this file>
-```
+| Owner | Responsibility |
+|---|---|
+| **AI** | All `ai-*.md` files — design docs, stubs, reviews, roadmap |
+| **Human** | All `you-*.md` files — reviews, approvals, asset collection, playtesting |
+| **Both** | `PROJECT_STATUS.md`, `DECISIONS.md`, `BACKLOG.md`, `CHANGELOG.md` |
+
+`working-style.md` defines the full collaboration contract.
+
+---
+
+## Current Milestone
+
+**Milestone 01 — Game Discovery**
+Phase 1.1 complete. Phases 1.2–1.7 pending. Human sign-off on vision document required.
+
+Detail: `milestones/milestone-01-game-discovery/ai-overview.md`
+
+## Next Milestone
+
+**Milestone 02 — Architecture Discovery**
+Not started. Opens when Milestone 01 exit criteria are met.
+
+Detail: `milestones/milestones-02-to-15.md`
+
+---
+
+## File Naming
+
+- `ai-*.md` — created and maintained by AI
+- `you-*.md` — requires human action (review, decision, collection, playtesting)
+- `ALL_CAPS.md` — project control files (always kept current)
+
+---
 
 ## Conventions
 
-- **One topic per file.** If a file is covering two things, split it.
-- **Update docs in the same change as the code they describe.** Stale docs are worse than no docs.
-- **Decisions get a short rationale** — what we considered, what we picked, why. Lock decisions go in [`decisions/`](./decisions/) as ADRs.
-- **Folder structure** evolves as we add subsystems. When we add a new directory, give it its own `README.md` index.
-- **Cross-link liberally.** It's fine to reference docs that don't exist yet — that's a marker for what to write next.
-
-## Current status (snapshot)
-
-> Updated as the project moves. Replace this paragraph when status changes — don't append.
-
-**Phase:** Milestone 01 — Game Discovery. Phase 1.1 (Game Vision) complete.
-
-**Last completed:** Canonical Game Vision document written (`game-design/ai-vision.md` v1). Locks Vision Statement, Player Fantasy (summoned learner / capacity-to-learn / knowledge rarity is environmental), five Target Emotions (comprehension click as primary), four Design Pillars, Knowledge Doctrine (three commitments + recognisability test), Success Criteria (three tiers), Anti-Patterns (eight, capped). Tensions: 1 resolved · 2 form-locked · 3 open. Milestone 01 phase structure updated: phase docs are now working logs / deepening passes on the canonical vision. Three companion files in `00-game-discovery/` retired to redirect stubs.
-
-**Next slice:** Phase 1.2 — Target Feel & Reference Analysis: a deepening pass on `ai-vision.md` §3 (Target Emotions) and §4 (Pillars) through reference game analysis (Pokémon, Zelda, Golden Sun, classic JRPGs + 1–2 indie refs for teaching-through-play).
+- **One topic per file.** If a file covers two things, split it.
+- **Update docs in the same change as the content they describe.** Stale docs are worse than no docs.
+- **Decisions are recorded in `DECISIONS.md`.** Not in prose, not in passing comments.
+- **`PROJECT_STATUS.md` is always current.** Update it at the end of every working session.

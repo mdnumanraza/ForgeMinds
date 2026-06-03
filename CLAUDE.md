@@ -21,10 +21,15 @@ If any default behavior conflicts with the rules above, the rules above win.
 
 ## Where things live
 
-- `development/working-style.md` — the rules above, in full. Re-read if unsure.
-- `development/README.md` — index of all project documentation (architecture, systems, phases, decisions).
+- `development/working-style.md` — collaboration rules. Re-read if unsure.
+- `development/README.md` — project control center. Start here.
+- `development/PROJECT_STATUS.md` — current milestone, next actions, blockers. Always current.
+- `development/DECISIONS.md` — all locked design decisions.
+- `development/game-design/ai-vision.md` — highest-priority design document.
 - `src/` — application code (Next.js / TypeScript).
 - `reference-project/` — reference material; do not modify unless asked.
+
+> **New session orientation:** Read `development/README.md` + `development/PROJECT_STATUS.md`. Under 5 minutes. Everything else is linked from there.
 
 ## Default workflow for any non-trivial task
 
