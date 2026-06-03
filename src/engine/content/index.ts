@@ -1,8 +1,0 @@
-export { loadCampaignFromRaw, loadCampaignFromObjects } from './CampaignLoader'
-export { validateCampaignJSON, parseRawJSON } from './SchemaValidator'
-export { loadTemplate, TEMPLATE_METADATA } from './TemplateRegistry'
-export type { Campaign, CampaignSummary, ValidationResult, ValidationError } from './types'
-export { WorldSchema } from './schemas/world.schema'
-export { KnowledgeSchema } from './schemas/knowledge.schema'
-export type { World, StageDefinition } from './schemas/world.schema'
-export type { Knowledge, KnowledgeStage, Quest, Challenge, ChallengeQuestion } from './schemas/knowledge.schema'
