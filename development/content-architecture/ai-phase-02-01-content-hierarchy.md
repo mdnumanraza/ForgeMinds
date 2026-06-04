@@ -2,7 +2,7 @@
 
 > **Phase:** 2.1 — Content Hierarchy
 > **Purpose:** Define the ownership tree, dependency rules, reuse rules, and lifecycle rules for all ForgeMinds content entities — before any storage or schema decisions are made.
-> **Status:** v1 — conceptual only. No schemas, no storage format, no implementation details.
+> **Status:** v2 — updated for Beat-centric architecture pivot. Beat is now a first-class L2 entity. Former L2 stage-content entities are now L3 (Beat-payload level). See `ai-beat-model.md` for the canonical Beat definition.
 > **Owned by:** AI
 > **Cites:** `ai-vision.md §5` (Knowledge Doctrine), `ai-gameplay-loop.md §3` (9-beat arc), `ai-content-entity-inventory.md` (40 entity types)
 
@@ -38,23 +38,28 @@ Every content entity in ForgeMinds exists at one of five scope levels. Scope det
 │  with it. Examples: Act, CastMember,        │
 │  ProgressionLevel, Item, Ability            │
 ├─────────────────────────────────────────────┤
-│  LEVEL 2 — STAGE                            │
-│  Owned by one stage within a campaign.      │
-│  Examples: NPC, Enemy, Quest, Dungeon,      │
-│  KnowledgeBeat, Region, Boss (stage boss)   │
+│  LEVEL 2 — BEAT                             │
+│  A single ordered gameplay moment within    │
+│  a Stage. The atomic unit of gameplay,      │
+│  narrative, learning, and validation.       │
+│  Examples: KNOWLEDGE beat, QUEST beat,      │
+│  ENCOUNTER beat, BOSS beat, PORTAL beat     │
 ├─────────────────────────────────────────────┤
-│  LEVEL 3 — BEAT                             │
-│  Owned by a specific content beat within    │
-│  a stage. Examples: QuestStep, BossPhase,   │
-│  DialogueState, KnowledgePanel, Portal      │
+│  LEVEL 3 — BEAT PAYLOAD                     │
+│  The typed content entity owned by a Beat.  │
+│  Examples: KnowledgeBeat, Quest, NPC,       │
+│  Enemy, Dungeon, Boss, StoryBeat, Portal    │
+│  (formerly called "Stage content" at L2)    │
 ├─────────────────────────────────────────────┤
 │  LEVEL 4 — ATOMIC                           │
 │  Smallest content units. Owned by their     │
-│  parent beat. Examples: DialogueLine,       │
-│  Challenge, ThemeOverride, Checkpoint,      │
-│  EnvironmentalStory                         │
+│  parent payload. Examples: DialogueLine,    │
+│  Challenge, QuestStep, BossPhase,           │
+│  KnowledgePanel, ThemeOverride, Checkpoint  │
 └─────────────────────────────────────────────┘
 ```
+
+> **Architecture note (v2):** Beat is now the L2 scope level. A Stage is a container of ordered Beats. Each Beat has a type and a payload (the typed content entity). The hierarchy is now: Platform → Campaign → Act → Stage → Beat → Payload → Atomic. This makes the 9-beat arc a data structure, not a design convention — enabling ordering validation, visual editor support, and AI-native content generation.
 
 **Scope rule:** content at level N can only be *owned* by content at level N-1 or above. Content at any level can *reference* (point to) content at level 0 (platform). This is the fundamental rule that makes campaigns swappable without code changes.
 
@@ -64,95 +69,120 @@ Every content entity in ForgeMinds exists at one of five scope levels. Scope det
 
 Reading this tree: indented items are **owned by** their parent. An arrow (→) means **references** (does not own; the referenced entity is defined elsewhere).
 
+> **v2 change:** Stage now owns `Beat[]` (ordered sequence). Each Beat owns exactly one typed payload. All former "Stage-owned" content entities are now Beat payloads (L3).
+
 ```
 Platform
 ├── Theme (L0)
-│   └── ThemeOverride (L4)  ← applied to any entity with theme-variant fields
+│   └── ThemeOverride (L4)
 │
-├── Concept (L0)            ← the K8s/Linux/Docker concept being taught
-│   └── [linked to by KnowledgeBeat, Challenge, Enemy, Boss]
+├── Concept (L0)
+│   └── [referenced by KnowledgeBeat, Challenge, Enemy, Boss payloads]
 │
-├── ChallengeType (L0)      ← MCQ, CommandCompletion, Debugging, etc. (enum)
+├── ChallengeType (L0)
 │
 └── Campaign (L1)
-    ├── → Theme[ ]           ← which themes this campaign supports
-    ├── → Concept[ ]         ← which concepts appear in this campaign
+    ├── → Theme[ ]
+    ├── → Concept[ ]
     │
-    ├── CastMember[ ] (L1)   ← Lyra, Kestran, Voss, Mira, Khaosynth
-    │   └── DialogueState[ ] (L3)
-    │       └── DialogueLine[ ] (L4)
+    ├── CastMember[ ] (L1)
+    │   └── StageAppearance[ ] (L2-within-Campaign)
+    │       └── DialogueState[ ] (L3)
+    │           └── DialogueLine[ ] (L4)
     │
     ├── ProgressionLevel[ ] (L1)
     ├── Item[ ] (L1)
     ├── Ability[ ] (L1)
     │
     └── Act[ ] (L1)
-        └── Stage[ ] (L2)
-            ├── → Concept (primary)     ← which concept this stage teaches
-            ├── → CastMember[ ]         ← which recurring cast appear here
+        ├── ActBoss (L1)           ← owned by Act, not Stage
+        │   ├── → Concept[ ]
+        │   └── BossPhase[ ] (L4)
+        │       └── → Challenge[ ]
+        │
+        └── Stage[ ] (L1-within-Act)
+            ├── → Concept (primary)
+            ├── → CastMember[ ]
             │
-            ├── Region (L2)
-            │   ├── ExplorationPoint[ ] (L3)
-            │   └── EnvironmentalStory[ ] (L4)
-            │
-            ├── KnowledgeBeat[ ] (L2)
-            │   ├── → Concept            ← which concept this beat reveals
-            │   └── KnowledgePanel[ ] (L3)
-            │
-            ├── NPC[ ] (L2)             ← local NPCs (1–3 per stage)
-            │   └── DialogueState[ ] (L3)
-            │       └── DialogueLine[ ] (L4)
-            │
-            ├── Quest[ ] (L2)
-            │   ├── → NPC (giver)
-            │   ├── → CastMember (if cast-driven)
-            │   ├── QuestStep[ ] (L3)
-            │   ├── QuestResolutionCondition[ ] (L3)
-            │   │   └── → Concept (mastery check)
-            │   └── → Reward
-            │
-            ├── Enemy[ ] (L2)
-            │   ├── → Concept            ← concept failure mode this enemy represents
-            │   ├── EncounterTrigger (L3)
-            │   └── → Challenge[ ]       ← see Challenge pool section (§5)
-            │
-            ├── MiniChallenge[ ] (L2)
-            │   └── → Challenge
-            │
-            ├── Dungeon (L2)
-            │   ├── → Enemy[ ]
-            │   ├── MiniBoss (L2)
-            │   │   └── → Challenge[ ]
-            │   └── → KnowledgeBeat[ ]  ← dungeon-deep knowledge reveals
-            │
-            ├── Boss (L2 or L1 for act bosses)
-            │   ├── → Concept[ ]         ← concepts combined in this boss
-            │   └── BossPhase[ ] (L3)
-            │       └── → Challenge[ ]
-            │
-            ├── StoryBeat[ ] (L2)
-            │   └── → CastMember (if cast-driven)
-            │
-            ├── CutsceneEvent[ ] (L2)
-            │
-            ├── Reward (L2)              ← stage completion reward
-            │   └── → Item / Ability / ProgressionLevel
-            │
-            ├── Portal (L3)
-            │   └── → Stage (next)       ← unlock reference
-            │
-            └── Checkpoint[ ] (L4)
+            └── Beat[ ] (L2) ← ORDERED SEQUENCE — this is the v2 change
+                │
+                ├── Beat { type: ARRIVAL, position: 1 }
+                │   └── payload: StoryBeat (L3)
+                │       └── → CastMember (if cast-driven)
+                │
+                ├── Beat { type: EXPLORATION, position: 2 }
+                │   └── payload: Region (L3)
+                │       ├── ExplorationPoint[ ] (L4)
+                │       └── EnvironmentalStory[ ] (L4)
+                │
+                ├── Beat { type: KNOWLEDGE, position: 3..N }
+                │   └── payload: KnowledgeBeat (L3)
+                │       ├── → Concept
+                │       └── KnowledgePanel[ ] (L4)
+                │
+                ├── Beat { type: QUEST, position: N }
+                │   └── payload: Quest (L3)
+                │       ├── → NPC (giver)
+                │       ├── → CastMember (if cast-driven)
+                │       ├── QuestStep[ ] (L4)
+                │       ├── QuestResolutionCondition[ ] (L4)
+                │       │   └── → Concept (mastery check)
+                │       └── → Reward
+                │
+                ├── Beat { type: ENCOUNTER, position: N }
+                │   └── payload: Enemy (L3)
+                │       ├── → Concept
+                │       ├── EncounterTrigger (L4)
+                │       └── → Challenge[ ]
+                │
+                ├── Beat { type: MINI_CHALLENGE, position: N }
+                │   └── payload: MiniChallenge (L3)
+                │       └── → Challenge
+                │
+                ├── Beat { type: DUNGEON, position: N }
+                │   └── payload: Dungeon (L3)
+                │       ├── → Enemy[ ]
+                │       ├── MiniBoss (L4)
+                │       │   └── → Challenge[ ]
+                │       └── → KnowledgeBeat[ ]
+                │
+                ├── Beat { type: BOSS, position: N }
+                │   └── payload: Boss (L3)
+                │       ├── → Concept[ ]
+                │       └── BossPhase[ ] (L4)
+                │           └── → Challenge[ ]
+                │
+                ├── Beat { type: NPC_INTERACTION, position: N }
+                │   └── payload: NPC (L3)
+                │       └── DialogueState[ ] (L4)
+                │           └── DialogueLine[ ] (L4)
+                │
+                ├── Beat { type: CUTSCENE, position: N }
+                │   └── payload: CutsceneEvent (L3)
+                │
+                ├── Beat { type: CHECKPOINT, position: N }
+                │   └── payload: Checkpoint (L4)
+                │
+                └── Beat { type: PORTAL, position: final }
+                    └── payload: Portal (L3)
+                        └── → Stage (next)
 ```
 
-**Special case — Act Boss:** Act bosses (Isolation Wyrm, Severed Envoy, Corrupted Warden) are owned by the Act, not a single Stage. They span multiple stages' concepts and are unlocked by Stage completion, not by Stage ownership.
+> **Key rules in the Beat model:**
+> - Every Beat has a unique position within its Stage's sequence
+> - Stage validation checks ordering (KNOWLEDGE before ENCOUNTER, BOSS before PORTAL, etc.)
+> - A Stage owns its Beats; a Beat owns its payload; payload entities own their children
+> - The Beat type is not the payload type — Beat is the envelope; the payload is the content
+
+**Special case — Act Boss:** ActBoss is owned by the Act (L1), not by any Stage or Beat. It is unlocked by Act progression, not by a Stage's Beat sequence.
 
 ```
 Act (L1)
-├── Stage[ ] (L2)
-│   └── Boss (stage boss — L2, owned by Stage)
-└── ActBoss (L1, owned by Act)
-    ├── → Concept[ ]  ← all act concepts combined
-    └── BossPhase[ ]
+├── Stage[ ]
+│   └── Beat[ ] (Stage's sequence, L2)
+└── ActBoss (L1)          ← outside any Stage's Beat sequence
+    ├── → Concept[ ]
+    └── BossPhase[ ] (L4)
         └── → Challenge[ ]
 ```
 
@@ -164,9 +194,9 @@ These rules define what "owns" means in this hierarchy and what consequences fol
 
 ### Rule O-1 — Owners are responsible for their children's lifecycle
 
-If a Stage is removed from a campaign, all content it owns is removed with it: its NPCs, quests, enemies, dungeon, boss, knowledge beats, region, story beats, checkpoints. Nothing it *owns* survives its deletion.
+If a Stage is removed from a campaign, all its Beats are removed, and all Beat payloads are removed with them. Nothing a Stage *owns* (Beats and their payloads) survives its deletion.
 
-Content it *references* (Concepts, CastMembers, Themes) is not affected.
+Content a Stage or Beat *references* (Concepts, CastMembers, Themes) is not affected.
 
 ### Rule O-2 — Only platform-level content (L0) is owned by no one
 
@@ -176,19 +206,23 @@ Concepts, Themes, and ChallengeTypes are platform-level. No single campaign owns
 
 CastMembers, Items, Abilities, and ProgressionLevels are owned by one campaign. Lyra exists in Kubernetes Kingdom only. If Linux Realms wants its own archivist character, that is a new CastMember — it is not Lyra reused.
 
-*Exception: Themes and Concepts are platform-level and ARE shared. A future campaign can use the Fantasy theme. A future campaign can teach the "container" concept.*
+*Exception: Themes and Concepts are platform-level and ARE shared.*
 
-### Rule O-4 — Stage content cannot be shared across stages within a campaign
+### Rule O-4 — Beat payloads cannot be shared across Stages
 
-A local NPC is owned by one stage. The quest is owned by one stage. The dungeon is owned by one stage. Stage 5's Hadris cannot appear as a quest-giver in Stage 7 without becoming a referenced CastMember (L1), which changes her scope.
+A Quest payload is owned by one Beat in one Stage. An Enemy payload is owned by one Beat in one Stage. A Beat's payload cannot appear in another Stage's Beat sequence.
 
-*The correct design when a local NPC needs to appear in multiple stages: promote them to CastMember at campaign level.*
+*The correct design when a local NPC needs to appear in multiple stages: promote them to CastMember at campaign level, then reference them via AppearanceTrigger from the relevant Beats.*
 
-### Rule O-5 — A Beat owns its children, but a Beat can reference up
+### Rule O-5 — A Beat owns its payload; a payload owns its children
 
-A QuestStep is owned by its Quest. A BossPhase is owned by its Boss. A KnowledgePanel is owned by its KnowledgeBeat. Children do not outlive their beat container.
+A Beat owns exactly one payload entity. The payload owns its children (QuestStep, BossPhase, KnowledgePanel, etc.). Children do not outlive their payload. The payload does not outlive its Beat.
 
-Beat-level content can reference upward: a QuestResolutionCondition can reference a Concept (L0) to check mastery state. A DialogueLine can reference a CastMember (L1) for a cast-driven NPC response.
+Payloads can reference upward: a QuestResolutionCondition can reference a Concept (L0) to check mastery state. A DialogueLine can reference a CastMember (L1) for a cast-driven NPC response.
+
+### Rule O-6 — Beats are ordered; order is data, not convention *(v2)*
+
+A Stage's Beats are a sequence, not a bag. Each Beat has an explicit position. The engine validates ordering rules against this sequence. The 9-beat arc pattern (KNOWLEDGE before ENCOUNTER, BOSS before PORTAL, etc.) is enforced by content validation, not by design convention alone.
 
 ---
 
@@ -424,35 +458,40 @@ Campaign
 
 ---
 
-## 12. The 9-beat arc in the hierarchy
+## 12. The 9-beat arc in the hierarchy *(v2 — Beat-centric)*
 
-The gameplay loop defines 9 beats per stage. In the content hierarchy, these beats map to owned entities as follows:
+The gameplay loop defines 9 beat types per stage. In the Beat-centric model, each beat type is a typed Beat in the Stage's ordered sequence. Beat is the owner; the content entity is its payload.
 
-| Beat | Owner | Content entity type |
-|---|---|---|
-| 1. Arrival | Stage | StoryBeat (arrival variant) |
-| 2. Exploration | Stage / Region | ExplorationPoint[ ], EnvironmentalStory[ ] |
-| 3. Discovery | Stage | KnowledgeBeat[ ] → KnowledgePanel[ ] |
-| 4. Quests | Stage | Quest[ ] → QuestStep[ ], QuestResolutionCondition[ ] |
-| 5. Encounters | Stage | Enemy[ ] → EncounterTrigger, → Challenge[ ] |
-| 6. Mini-challenges | Stage | MiniChallenge[ ] → Challenge |
-| 7. Dungeon | Stage | Dungeon → Enemy[ ], MiniBoss, → KnowledgeBeat[ ] |
-| 8. Boss | Stage (stage boss) or Act (act boss) | Boss → BossPhase[ ] → Challenge[ ] |
-| 9. Portal | Stage | Portal → Stage (next, reference only) |
+| Beat type | Beat level | Payload type | Payload children |
+|---|---|---|---|
+| ARRIVAL | L2 | StoryBeat (L3) | → CastMember (if cast-driven) |
+| EXPLORATION | L2 | Region (L3) | ExplorationPoint[ ] (L4), EnvironmentalStory[ ] (L4) |
+| KNOWLEDGE | L2 | KnowledgeBeat (L3) | KnowledgePanel[ ] (L4) |
+| QUEST | L2 | Quest (L3) | QuestStep[ ] (L4), QuestResolutionCondition[ ] (L4) |
+| ENCOUNTER | L2 | Enemy (L3) | EncounterTrigger (L4), → Challenge[ ] |
+| MINI_CHALLENGE | L2 | MiniChallenge (L3) | → Challenge |
+| DUNGEON | L2 | Dungeon (L3) | MiniBoss (L4), → Enemy[ ], → KnowledgeBeat[ ] |
+| BOSS | L2 | Boss (L3) | BossPhase[ ] (L4) → Challenge[ ] |
+| NPC_INTERACTION | L2 | NPC (L3) | DialogueState[ ] (L4) → DialogueLine[ ] (L4) |
+| CUTSCENE | L2 | CutsceneEvent (L3) | — |
+| CHECKPOINT | L2 | Checkpoint (L4) | — |
+| PORTAL | L2 | Portal (L3) | → Stage (next, reference only) |
 
-**Rule B-1:** Beats are not separate entity types. They are the named slots in the Stage's content. The Stage "has a Dungeon," "has KnowledgeBeats," "has Quests" — these are the beats. There is no abstract "Beat" entity.
+**Rule B-1 (v2):** Beat IS a first-class entity type. It is not a named slot or a design convention. A Stage owns a `Beat[]` sequence. Each Beat has: an ID, a position (integer), a type (from the list above), and exactly one typed payload. See `ai-beat-model.md` for the full Beat entity definition.
 
-**Rule B-2:** Not all beats are required in every stage. The Final Stage has no Portal. Some stages may have no Mini-challenges. The beat model is a named-slot system with campaign-defined requirements, not a mandatory list.
+**Rule B-2:** Not all beat types are required in every stage. The Campaign declares its required beat types per stage. The Final Stage has no PORTAL beat. Some stages may have no MINI_CHALLENGE beats. Validation checks required beat types are present and in valid ordering.
+
+**Rule B-3 (v2):** Beat ordering is validated data, not convention. The engine enforces that KNOWLEDGE beats precede the first ENCOUNTER beat; that the BOSS beat precedes the PORTAL beat; that DUNGEON precedes BOSS. These rules are declared in the Campaign's beat-ordering configuration.
 
 ---
 
-## 13. Summary: the seven structural answers
+## 13. Summary: the seven structural answers *(v2 — Beat-centric)*
 
 | Question | Answer |
 |---|---|
-| **Top-level entities** | Platform → Campaign → Act → Stage. Plus platform-level singletons: Concept, Theme, ChallengeType. |
-| **What owns what** | Platform owns Campaigns and platform-level entities. Campaign owns Acts, CastMembers, Items, Abilities, ProgressionLevels. Act owns Stages (and ActBosses). Stage owns everything below it. |
-| **What references what** | Stage references Concepts (L0), CastMembers (L1), and the next Stage via Portal. Beat-level content references Concepts for mastery checks and Challenges from pools. |
+| **Top-level entities** | Platform → Campaign → Act → Stage → Beat. Plus platform-level singletons: Concept, Theme, ChallengeType. |
+| **What owns what** | Platform owns Campaigns and platform-level entities. Campaign owns Acts, CastMembers, Items, Abilities, ProgressionLevels. Act owns Stages (and ActBosses). **Stage owns Beats. Beat owns its payload. Payload owns its children.** |
+| **What references what** | Stage references Concepts (L0), CastMembers (L1). Beat payloads reference Concepts for mastery checks and Challenges from pools. Portal payload references next Stage. |
 | **What can be reused** | L0 entities (Concept, Theme, ChallengeType) — reusable across all campaigns. L1 entities (CastMember, Item, Ability) — reusable within one campaign. Challenges — reuse depends on D-CA-06 decision. |
 | **What cannot be reused** | L2 stage-scoped entities: NPC, Quest, KnowledgeBeat, Dungeon, Region, Enemy, Stage Boss. These are stage-specific and do not transfer. |
 | **Campaign-specific content** | Everything at L1 (Campaign, Act, CastMember, ProgressionLevel, Item, Ability) and below. Nothing in one campaign is accessible from another. |

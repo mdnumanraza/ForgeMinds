@@ -87,13 +87,13 @@ development/
 
 ## Current Milestone
 
-**Milestone 02 — Content Architecture** · Phase 2.1 (Content Hierarchy) is the first to execute.
+**Milestone 03 — Technical Architecture** · Active. Planning phase.
 
-Planning docs: `milestones/milestone-02-content-architecture/`
+Milestone 02 fully closed 2026-06-04. See `milestones/milestone-02-content-architecture/ai-milestone-closure.md`.
 
-## Next Milestone
+## Next steps
 
-**Milestone 03 — Design Decisions** · Opens after M02 Phase 2.8 (critical decisions review).
+Begin Milestone 03 Phase 3.1 — Technology Selection. See `milestones/milestone-03-design-decisions/ai-overview.md` (being prepared).
 
 ---
 
@@ -110,7 +110,7 @@ These are the load-bearing documents. Every other file is either a stub, a revie
 | `DECISIONS.md` | All locked decisions | 🟠 High |
 | `PROJECT_STATUS.md` | Current state + next actions | 🟡 Always current |
 | `milestones/milestone-02-content-architecture/ai-overview.md` | M02 goals, phases, dependencies | 🟡 Active milestone |
-| `milestones/milestone-02-content-architecture/ai-content-entity-inventory.md` | 40 content entity types | 🟡 Active milestone |
+| `content-architecture/ai-beat-model.md` | Canonical Beat entity definition (L2 in hierarchy) | 🟡 Active milestone |
 
 ---
 

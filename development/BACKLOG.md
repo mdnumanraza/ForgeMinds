@@ -4,6 +4,12 @@
 
 ---
 
+## Architecture decisions (revisit before Milestone 06)
+
+- ~~**Beat-centric Stage architecture**~~ — **RESOLVED (D-17).** Beat adopted as first-class L2 entity on 2026-06-04. See `content-architecture/ai-beat-model.md` and `DECISIONS.md D-17`.
+
+---
+
 ## Deferred from campaign review (needs approval before acting)
 
 - **Address 3 Critical campaign review issues** — boss progression gap, 9-beat arc repetition, Stage 7 drop-off risk. Source: `game-design/ai-kubernetes-campaign-review.md`. Should be addressed before Milestone 06 (Core Engine).

@@ -7,6 +7,18 @@
 
 | Date | Change | Reason |
 |---|---|---|
+| 2026-06-04 | Milestone 02 fully closed; Milestone 03 opened | D-CA-06 (Option B — Concept Pool) and Authoring Format (YAML) approved by human; recorded as D-18 and D-19 |
+| 2026-06-04 | Milestone 02 (Content Architecture) conditionally closed | All phases complete; 2 human decisions (D-CA-06, authoring format) required before Milestone 03 opens |
+| 2026-06-04 | Phase 2.7 (Theme Variant Architecture) complete | Every content entity classified as TI/TV/TO/TD; 6 rule sets; Kubernetes Galaxy transformation walkthrough |
+| 2026-06-04 | Phase 2.6.6 (Authoring Lifecycle) complete | 5 lifecycle states for Campaign/Stage/CastMember/Quest/Beat; AI content requires human REVIEW gate |
+| 2026-06-04 | Phase 2.8 (Decision Lock Review) complete | 12 decisions locked; 2 need human input; 6 deferred to later milestones |
+| 2026-06-04 | Phase 2.6.5 (Content Authoring Architecture) complete | Hybrid E3 recommended: Campaign Skeleton + Cast files + Stage files |
+| 2026-06-04 | Visual Blueprint Viewer built at /tools/blueprints | Proof-of-concept visualisation; Campaign View + Stage View + Beat Detail Panel + 7 validation rules |
+
+---
+
+| Date | Change | Reason |
+|---|---|---|
 | 2026-06-03 | Documentation refactor — ~107 → ~55 files | Structure had become fragmented; too many planning-stage directories, milestone artifacts, and overlapping files made navigation and maintenance difficult |
 | 2026-06-03 | Kubernetes Kingdom campaign design complete (14 stages + Final) | Core campaign content finalized before architecture decisions to ensure technical choices serve the game design |
 | 2026-06-03 | Campaign post-review created (20 issues) | Identified Critical/Significant gaps before entering implementation milestones |
