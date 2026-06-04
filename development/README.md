@@ -87,13 +87,17 @@ development/
 
 ## Current Milestone
 
-**Milestone 03 — Technical Architecture** · Active. Planning phase.
+**Milestone 03 — Technical Architecture** · Runtime synthesis complete · ⚡ Implementation recommended.
 
-Milestone 02 fully closed 2026-06-04. See `milestones/milestone-02-content-architecture/ai-milestone-closure.md`.
+**Vertical slice target:** Stage 2 — Podveil Village (Pods concept, ~2–4 weeks to playable).
+**Build plan:** `milestones/milestone-03-technical-architecture/technical-architecture/ai-mvp-production-plan.md`
+**Reality check:** `milestones/milestone-03-technical-architecture/technical-architecture/ai-project-reality-check.md`
 
 ## Next steps
 
-Begin Milestone 03 Phase 3.1 — Technology Selection. See `milestones/milestone-03-design-decisions/ai-overview.md` (being prepared).
+**Two parallel tracks:**
+1. **Implementation** — Phase 1 (First Playable): Phaser + React canvas, player movement
+2. **Architecture** — Phases 3.4–3.10 can continue alongside implementation
 
 ---
 

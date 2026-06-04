@@ -1,6 +1,6 @@
 # PROJECT STATUS
 
-> Last updated: Runtime synthesis complete. Vertical slice defined (Stage 2). MVP production plan written. Reality check done. **Recommendation: begin implementation.**
+> Last updated: Milestone 04 (Vertical Slice) planning complete. **Next action: T-01 — Phaser mounts in Next.js.**
 
 ---
 
@@ -8,9 +8,9 @@
 
 | Property | Value |
 |---|---|
-| **Active milestone** | Milestone 03 — Technical Architecture (in progress) |
-| **Current phase** | Runtime synthesis complete — Phase 3.4 or implementation start |
-| **Recommendation** | ⚡ **BEGIN IMPLEMENTATION** — see `ai-project-reality-check.md` |
+| **Active milestone** | Milestone 04 — Vertical Slice (planning complete) |
+| **Current phase** | Phase A — First Playable World |
+| **Next action** | ⚡ **T-01: Phaser mounts in Next.js** — start coding |
 | **Campaign design** | ✅ CLOSED |
 | **Milestone 02** | ✅ FULLY CLOSED (2026-06-04) |
 | **Next action** | Begin Milestone 03 Phase 3.1 |
@@ -68,22 +68,21 @@ See `DECISIONS.md` for complete decision record (D-01 through D-19).
 - ✅ Planning: `ai-phase-plan.md` — phase-by-phase detail, critical decisions, validation checklists
 - ✅ Phase 3.1 — Technology Evaluation locked (D-20/D-20A/D-21/D-22 Hybrid/D-23)
 - ✅ Phase 3.2 — Engine Architecture (D-24A/B/C + D-25/D-26 locked)
-- ✅ Phase 3.3 — Content Loading Pipeline (D-27/D-28 locked)
-- ✅ Runtime synthesis — `technical-architecture/` (4 documents: runtime architecture, vertical slice, MVP plan, reality check)
-- ⬜ Phase 3.4–3.10 — can continue in parallel with implementation
-- ⚡ **NEXT: Begin implementation — Phase 1 (First Playable)**
-
-### Immediate next actions (two parallel tracks)
-**Track A — Implementation (recommended to start now):**
-1. Create `src/app/game/page.tsx` with `PhaserGame.tsx` mounted via `next/dynamic`
-2. Create BootScene, PreloaderScene, StageRuntimeScene (empty shells)
-3. Load Podveil Village tilemap placeholder, player sprite placeholder
-4. Get character moving on screen
-
-**Track B — Architecture (can continue in parallel):**
-5. Phase 3.4 — State Management
-6. Phase 3.5 — Save System
-7. Phase 3.6–3.10 — remaining phases
+### Milestone 04 — Vertical Slice (🔄 ACTIVE — READY TO CODE)
+- ✅ Planning: `ai-overview.md`, `ai-implementation-plan.md`, `ai-task-breakdown.md` (34 tasks)
+- ✅ Planning: `ai-definition-of-done.md`, `ai-risk-register.md`, `ai-development-order.md`
+- ⚡ **Phase A — First Playable World (START HERE)**
+  - T-01: Phaser mounts in Next.js ← **NEXT**
+  - T-02: BootScene + PreloaderScene
+  - T-03: StageRuntimeScene skeleton
+  - T-04: Player movement + camera
+  - T-05: Podveil Village tilemap
+  - T-06: Tilemap collision
+- ⬜ Phase B — First Interaction
+- ⬜ Phase C — First Knowledge Loop
+- ⬜ Phase D — First Combat Loop
+- ⬜ Phase E — First Boss Loop
+- ⬜ Phase F — First Complete Stage
 
 ---
 
